@@ -1,6 +1,23 @@
-import './assets/main.css'
-
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import piniaPersist from 'pinia-plugin-persistedstate'
+import router from './router'
 import App from './App.vue'
-
-createApp(App).mount('#app')
+import './assets/main.css'
+import { i18n } from '@/i18n'
+import Toast from "vue-toastification";
+import "vue-toastification/dist/index.css";
+const app = createApp(App)
+const pinia = createPinia()
+pinia.use(piniaPersist)
+app.use(Toast, {
+    position: "bottom-right",
+    timeout: 3500,
+    closeOnClick: true,
+    draggable: true,
+    pauseOnHover: true,
+});
+app.use(pinia)
+app.use(router)
+app.use(i18n)
+app.mount('#app')
