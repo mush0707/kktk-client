@@ -6,7 +6,9 @@ import App from './App.vue'
 import './assets/main.css'
 import { i18n } from '@/i18n'
 import Toast from "vue-toastification";
+import 'flowbite';
 import "vue-toastification/dist/index.css";
+import 'vue-select/dist/vue-select.css';
 const app = createApp(App)
 const pinia = createPinia()
 pinia.use(piniaPersist)

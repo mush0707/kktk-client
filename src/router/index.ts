@@ -8,6 +8,10 @@ const routes: RouteRecordRaw[] = [
     {path: '/403', component: () => import('@/views/Forbidden.vue'), meta: {auth: false}},
     {path: '/pages', component: () => import('@/views/PagesAdmin.vue'), meta: {auth: true, can: 'pages.manage'}},
     {path: '/users', component: () => import('@/views/Users.vue'), meta: {auth: true, can: 'users.manage'}},
+    {path: '/buildings', component: () => import('@/views/buildings/Buildings.vue'), meta: {auth: true, can: 'buildings.manage'}},
+    {path: '/apartments', component: () => import('@/views/apartments/Apartments.vue'), meta: {auth: true, can: 'apartments.manage'}},
+    {path: '/houses', component: () => import('@/views/houses/Houses.vue'), meta: {auth: true, can: 'houses.manage'}},
+    {path: '/requests', component: () => import('@/views/requests/Requests.vue'), meta: {auth: true, can: 'requests.manage'}},
 ]
 
 const router = createRouter({
