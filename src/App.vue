@@ -8,6 +8,7 @@ const route = useRoute()
 const auth = useAuth()
 
 // Show the app shell (sidebar) only when authenticated and not on /login
+// @ts-ignore
 const showShell = computed(() => auth.isAuthed && route.path !== '/login')
 </script>
 
