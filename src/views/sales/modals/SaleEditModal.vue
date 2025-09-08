@@ -262,6 +262,15 @@ export default {
         id: this.sale.garage_id,
         price_for_square: this.sale.garage_price_for_square,
       } : null
+
+      this.form.type = this.sale.type ? {
+        name: $(this.sale.type),
+        key: this.sale.type
+      } : null
+      this.form.deposit = this.sale.deposit
+      this.form.repayment_months_quantity = this.sale.repayment_months_quantity
+      this.form.price = this.sale.price
+      this.form.garage_price = this.sale.garage_price
     }
   }
 }
