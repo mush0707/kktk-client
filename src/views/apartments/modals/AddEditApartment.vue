@@ -50,6 +50,10 @@
                 :options="floors"
             />
           </div>
+          <div class="flex items-center mb-4">
+            <input id="duplex-checkbox" v-if="form.duplex" type="checkbox" value="" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+            <label for="duplex-checkbox" class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">Default checkbox</label>
+          </div>
           <div v-if="form.building?.id && form.block?.id && form.floor?.id" class="flex flex-col gap-y-2">
             <div class="flex flex-wrap gap-x-4 gap-y-2">
               <div class="flex flex-col gap-y-2">
@@ -134,7 +138,8 @@ export default {
         rooms: null,
         image: null,
         parent_image: null,
-        square_meter: null
+        square_meter: null,
+        duplex: null
       },
       image: null,
       parent_image: null,
@@ -165,7 +170,11 @@ export default {
       })
     },
     getFloorsByBuildingId() {
-      api.get("buildings/" + this.form.building.id + "/floors").then((response) => {
+      api.get("buildings/" + this.form.building.id + "/floors", {
+        params: {
+          type: 'residential'
+        }
+      }).then((response) => {
         this.floors = response.data.data
       }).catch((response) => {
       })
@@ -181,10 +190,11 @@ export default {
     store() {
       let error = false;
       if(!this.apartment_id) {
-        console.log(this.form);
-        Object.values(this.form).map((value) => {
-          if(!value) {
-            error = true;
+        Object.keys(this.form).map((key) => {
+          if(!this.form[key]) {
+            if(key !== 'parent_image' && key !== 'image') {
+              error = true;
+            }
           }
         })
       }
@@ -199,6 +209,7 @@ export default {
       formData.append('number', this.form.number);
       formData.append('rooms', this.form.rooms);
       formData.append('square_meter', this.form.square_meter);
+      formData.append('duplex', this.form.duplex ? 1 : 0);
       if(this.image) {
         formData.append('image', this.image);
       }

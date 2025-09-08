@@ -87,7 +87,7 @@
         <div class="flex flex-col gap-y-2">
           <p>{{ $t('floors') }}</p>
           <div class="relative p-2 flex flex-col gap-y-2 bg-gray-200" v-for="(floor, index) in form.floors">
-            <input :placeholder="(parseInt(index) + 1)" disabled type="text"
+            <input :placeholder="floor.level" v-model="floor.level" type="number"
                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                    required/>
             <select v-model="floor.type"
@@ -176,7 +176,8 @@ export default {
           {
             price: 0,
             model_image: null,
-            type: null
+            type: null,
+            level: null
           }
         ],
       },
@@ -223,7 +224,8 @@ export default {
       this.form.floors.push({
         price: 0,
         model_image: null,
-        type: null
+        type: null,
+        level: null
       })
     },
     store() {
@@ -269,10 +271,10 @@ export default {
         (this.form.entries || []).forEach(b => {
           formData.append('blocks[]', b?.name ?? '');
         });
-
         (this.form.floors || []).forEach((f, i) => {
           formData.append(`floors[${i}][type]`,  f?.type  ?? '');
           formData.append(`floors[${i}][price]`, f?.price ?? '');
+          formData.append(`floors[${i}][level]`, f?.level ?? '');
           if (f?.model_image instanceof File) {
             formData.append(`floors[${i}][model_image]`, f.model_image);
           }

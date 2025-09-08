@@ -16,24 +16,255 @@
         </svg>
       </button>
     </div>
-    <div>
+    <div class="flex bg-indigo-50 p-4 flex-col gap-y-2">
+      <p class="text-lg">{{ $t('filter') }}</p>
+      <div class="flex flex-col gap-y-2">
+        <div class="flex flex-wrap gap-y-4 gap-x-4">
+          <div class="flex flex-col gap-y-2">
+            <label>{{ $t('select_building') }}</label>
+            <vSelect
+                class="vselect"
+                v-model="filter.building"
+                label="name"
+                track-by="id"
+                :options="buildings"
+            />
+          </div>
+          <div class="flex flex-col gap-y-2">
+            <label>{{ $t('status') }}</label>
+            <vSelect
+                class="vselect"
+                v-model="filter.status"
+                label="name"
+                track-by="key"
+                :options="[
+                    {
+                      name: $t('pending'),
+                      key: 'pending'
+                    },
+                    {
+                      name: $t('active'),
+                      key: 'active'
+                    },
+                    {
+                      name: $t('reserved'),
+                      key: 'reserved'
+                    },
+                    {
+                      name: $t('sold'),
+                      key: 'sold'
+                    }
+                ]"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-x-4 gap-y-4">
+          <div class="flex flex-col gap-y-2">
+            <label># {{ $t('number') }}</label>
+            <input type="number" v-model="filter.number"
+                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                   required/>
+          </div>
+          <div class="flex flex-col gap-y-2">
+            <label>{{ $t('square_meter') }} >=</label>
+            <input type="number" v-model="filter.square_meter" step="0.01"
+                   class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-24 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                   required/>
+          </div>
+        </div>
+      </div>
     </div>
+    <div>
+      <label for="search" class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
+      <div class="relative">
+        <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
+          <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
+          </svg>
+        </div>
+        <input type="search" v-model="filter.search" id="search" class="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" :placeholder="$t('search')" required />
+      </div>
+    </div>
+    <div class="h-[640px] overflow-y-auto" @scroll="onScrollCallback($event, 'requests','list')">
+      <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+        <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+        <tr>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('from_staff') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('status') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('client') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('apartment') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('garage') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('house') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('preferred_price') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+            {{ $t('date') }}
+          </th>
+          <th scope="col" class="px-6 py-3">
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="request in requests.data"
+            class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
+          <td class="px-6 py-4">
+            {{ request.from_staff ? $t('yes') : $t('no') }}
+          </td>
+          <td class="px-6 py-4">
+            {{ $t(request.status) }}
+          </td>
+          <td class="px-6 py-4">
+            <span class="flex flex-col gap-y-2">
+              <span>{{ request.name }}</span>
+              <span>{{ request.phone }}</span>
+            </span>
+          </td>
+          <td class="px-6 py-4">
+            <span v-if="request.apartment_id" class="flex flex-col gap-y-2">
+                <span>{{ request.building_name }}</span>
+                <span>#{{ request.apartment_number }}</span>
+                <span>{{ request.floor_level }} {{ $t('level') }}</span>
+                <span>{{ request.apartment_square_meter }} {{ $t('square_meter') }}</span>
+                <span>{{ request.apartment_rooms }} {{ $t('rooms') }}</span>
+            </span>
+            <span v-else>{{ $t('missing') }}</span>
+
+          </td>
+          <td class="px-6 py-4">
+               <span v-if="request.garage_id" class="flex flex-col gap-y-2">
+                <span>#{{ request.garage_number }}</span>
+                <span>{{ request.garage_floor }} {{ $t('level') }}</span>
+                <span>{{ request.garage_square_meter }} {{ $t('square_meter') }}</span>
+            </span>
+            <span v-else>{{ $t('missing') }}</span>
+          </td>
+          <td class="px-6 py-4">
+            <span v-if="request.house_id" class="flex flex-col gap-y-2">
+                <span>{{ request.house_address }}</span>
+                <span>{{ $t('terrace_size') }}: {{ request.house_terrace_size }} {{ $t('square_meter') }}</span>
+            </span>
+            <span v-else>{{ $t('missing') }}</span>
+
+          </td>
+          <td class="px-6 py-4">
+            {{ price(request.preferred_price) }}
+          </td>
+          <td class="px-6 py-4">
+            {{ request.created }}
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex flex-col gap-y-2" v-if="request.status === 'active'">
+              <button type="button" @click="editRequest(request.id)"
+                      class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 font-medium rounded-xl text-sm px-4 py-2 me-2 mb-2 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
+                {{ $t('update') }}
+              </button>
+              <div class="flex gap-2">
+                <!-- SALE -->
+                <button
+                    type="button" @click="openSaleModal(request.id, 'sale')"
+                    class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300 disabled:opacity-60 disabled:pointer-events-none dark:focus:ring-emerald-900"
+                >
+                  <!-- money icon -->
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7a2 2 0 0 1 2-2h14v2H5v10h14v2H5a2 2 0 0 1-2-2V7zm6 5a4 4 0 1 0 8 0 4 4 0 0 0-8 0zm2 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0z"/></svg>
+                  {{ $t('sale') }}
+                </button>
+
+                <!-- RESERVE -->
+                <button
+                    type="button" @click="openSaleModal(request.id, 'reserve')"
+                    class="inline-flex items-center gap-2 rounded-xl border border-amber-400 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800 hover:bg-amber-100 active:bg-amber-200 focus:outline-none focus:ring-4 focus:ring-amber-300 disabled:opacity-60 disabled:pointer-events-none dark:bg-amber-950/30 dark:text-amber-200 dark:hover:bg-amber-900/40 dark:focus:ring-amber-900"
+                >
+                  <!-- bookmark icon -->
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z"/></svg>
+                  {{ $t('reserve') }}
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
   </div>
-  <AddRequestModal v-if="showAddEditRequestModal" v-bind:buildings="buildings" @updateList="updateList"/>
+  <AddRequestModal v-if="showAddEditRequestModal" v-bind:buildings="buildings" v-bind:request_id="selectedRequestId" @updateList="updateList"/>
+  <SaleModal v-if="showSaleModal" v-bind:request_id="selectedRequestId" v-bind:status="selectedSaleStatus" @updateList="updateList"/>
 </template>
 
 <script>
 import AddRequestModal from "@/views/requests/modals/AddRequestModal.vue";
 import api from "@/utils/api.js";
+import vSelect from "vue-select";
+import SaleModal from "@/views/sales/modals/SaleModal.vue";
 export default {
   data() {
     return {
       showAddEditRequestModal: false,
-      buildings: []
+      showSaleModal: false,
+      buildings: [],
+      filter: {
+        search: null
+      },
+      requests: {
+        data: [],
+        prependedData: [],
+        settings: {
+          scrollProcessingTime: null,
+          scrollHeight: null,
+          scrollTop: null,
+          clientHeight: null,
+          offset: null,
+          limit: 20,
+        }
+      },
+      timezone: null,
+      selectedRequestId: null,
+      selectedSaleStatus: null,
     }
+  },
+  watch: {
+    'filter.search'() {
+      this.resetPaginationSettings('requests');
+      this.list();
+    },
+    'filter.building'() {
+      this.resetPaginationSettings('apartments');
+      this.list();
+    },
+    'filter.number'() {
+      this.resetPaginationSettings('apartments');
+      this.list();
+    },
+    'filter.status'() {
+      this.resetPaginationSettings('apartments');
+      this.list();
+    },
+    'filter.square_meter'() {
+      this.resetPaginationSettings('apartments');
+      this.list();
+    },
   },
   methods: {
     createRequest() {
+      this.selectedRequestId = null;
+      this.showAddEditRequestModal = true;
+    },
+    editRequest(id) {
+      this.selectedRequestId = id;
       this.showAddEditRequestModal = true;
     },
     getBuildings() {
@@ -43,14 +274,95 @@ export default {
       })
     },
     updateList() {
-
-    }
+      this.list();
+    },
+    openSaleModal(id, type) {
+      this.selectedRequestId = id;
+      this.selectedSaleStatus = type;
+      this.showSaleModal = true;
+    },
+    async getTimezone() {
+      this.timezone = (new Date()).getTimezoneOffset() / 60;
+      if (this.timezone < 0) {
+        this.timezone = Math.abs(this.timezone);
+      } else {
+        this.timezone = 0 - this.timezone;
+      }
+    },
+    async list() {
+      await api.get("requests", {
+        params: {
+          limit: this.requests.settings.limit,
+          offset: this.requests.settings.offset,
+          search: this.filter.search,
+          building_id: this.filter.building?.id,
+          number: this.filter.number,
+          status: this.filter.status?.key,
+          square_meter: this.filter.square_meter ?? null,
+          timezone: this.timezone,
+        }
+      }).then((response) => {
+        if (this.requests.settings.offset > 0) {
+          this.requests.prependedData = response.data.data
+          this.requests.data = this.requests.data.concat(response.data.data);
+        } else {
+          this.requests.data = response.data.data
+        }
+      }).catch((response) => {
+      })
+    },
+    price(amount) {
+      let intlFormat = new Intl.NumberFormat('hy-AM', {
+        style: 'currency',
+        currency: 'amd'
+      })
+      amount = intlFormat.format(amount);
+      amount = amount.replace('AMD', '֏')
+      return amount;
+    },
+    async onScrollCallback(event, listName, listMethodName) {
+      const self = this;
+      if (!self.scrollProcessingTime) {
+        if (event.target.scrollLeft === 0) {
+          self[listName].settings.scrollHeight = event.target.scrollHeight
+          self[listName].settings.scrollTop = event.target.scrollTop
+          self[listName].settings.clientHeight = event.target.clientHeight
+          if (self[listName].settings.scrollTop + self[listName].settings.clientHeight + 50 >= self[listName].settings.scrollHeight) {
+            if (!self[listName].settings.offset) {
+              if (self[listName].settings.limit === self[listName].data.length) {
+                self[listName].settings.offset += self[listName].settings.limit;
+              }
+            } else {
+              if (self[listName].data.length >= self[listName].settings.limit) {
+                self.scrollProcessingTime = Date.now();
+                self[listMethodName]().then(function () {
+                  if (self[listName].prependedData.length === self[listName].settings.limit) {
+                    self.scrollProcessingTime = null;
+                    self[listName].settings.offset += self[listName].settings.limit;
+                  }
+                });
+              }
+            }
+          }
+        }
+      }
+    },
+    async resetPaginationSettings(listName) {
+      this[listName].settings.offset = null;
+      this[listName].prependedData = [];
+      this.scrollProcessingTime = null;
+    },
   },
   components: {
+    SaleModal,
+    vSelect,
     AddRequestModal
   },
   mounted() {
     this.getBuildings();
+    this.getTimezone().then(() => {
+      this.list();
+    })
   }
 }
 </script>

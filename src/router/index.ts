@@ -12,6 +12,7 @@ const routes: RouteRecordRaw[] = [
     {path: '/apartments', component: () => import('@/views/apartments/Apartments.vue'), meta: {auth: true, can: 'apartments.manage'}},
     {path: '/houses', component: () => import('@/views/houses/Houses.vue'), meta: {auth: true, can: 'houses.manage'}},
     {path: '/requests', component: () => import('@/views/requests/Requests.vue'), meta: {auth: true, can: 'requests.manage'}},
+    {path: '/sales', component: () => import('@/views/sales/Sale.vue'), meta: {auth: true, can: 'sales.manage'}},
 ]
 
 const router = createRouter({

@@ -24,7 +24,7 @@ const showShell = computed(() => auth.isAuthed && route.path !== '/login')
       <Sidebar />
     </aside>
 
-    <main class="min-h-screen bg-gray-50 dark:bg-gray-950">
+    <main class="h-screen overflow-y-auto bg-gray-50 dark:bg-gray-950">
       <!-- (optional) top spacer or header could go here -->
       <div class="p-4">
         <router-view />

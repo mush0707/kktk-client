@@ -49,10 +49,9 @@
           />
         </div>
         <div v-if="type?.key === 'apartments'" class="flex flex-col gap-y-2">
-          <p>{{ $t('filter') }}</p>
           <div class="flex flex-col gap-y-2">
             <div class="flex flex-col gap-y-2">
-              <label>{{ $t('buildings') }}</label>
+              <label>{{ $t('select_building') }}</label>
               <vSelect
                   class="vselect"
                   label="name"
@@ -62,54 +61,70 @@
               />
             </div>
             <div v-if="form.building?.id" class="flex flex-col gap-y-2">
-              <label>{{ $t('select_floor') }}</label>
-              <vSelect
-                  class="vselect"
-                  v-model="form.floor"
-                  label="level"
-                  track-by="id"
-                  :options="floors"
-              />
-            </div>
-            <div v-if="form.building?.id" class="flex flex-col gap-y-2">
-              <label>{{ $t('rooms') }}</label>
-              <vSelect
-                  class="vselect"
-                  v-model="form.rooms"
-                  :options="[1,2,3,4]"
-              />
-            </div>
-            <div v-if="form.building?.id" class="flex gap-x-4">
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{
-                    $t('square_meter')
-                  }} >=</label>
-                <input v-model="form.square_meter" type="number" step="0.01"
-                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                       required/>
-              </div>
-              <div>
-                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{
-                    $t('number')
-                  }}</label>
-                <input v-model="form.number" type="number"
-                       class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                       required/>
-              </div>
-            </div>
-            <div v-if="apartments.data?.length" class="flex flex-col gap-y-2">
-              <label>{{ $t('apartments') }}</label>
+              <label>{{ $t('select_garage') }}</label>
               <!-- template -->
               <vSelect
                   class="vselect"
-                  v-model="form.apartments"
-                  :options="apartments.data"
+                  v-model="form.garage"
+                  :options="garages"
                   multiple
-                  :get-option-label="apartmentLabel"
+                  :get-option-label="garageLabel"
                   track-by="id"
               >
               </vSelect>
 
+            </div>
+            <div class="bg-indigo-50 rounded-md flex flex-col gap-y-2 p-2">
+              <p>{{ $t('select_apartment') }}</p>
+              <div v-if="form.building?.id" class="flex flex-col gap-y-2">
+                <label>{{ $t('select_floor') }}</label>
+                <vSelect
+                    class="vselect"
+                    v-model="form.floor"
+                    label="level"
+                    track-by="id"
+                    :options="floors"
+                />
+              </div>
+              <div v-if="form.building?.id" class="flex flex-col gap-y-2">
+                <label>{{ $t('rooms') }}</label>
+                <vSelect
+                    class="vselect"
+                    v-model="form.rooms"
+                    :options="[1,2,3,4]"
+                />
+              </div>
+              <div v-if="form.building?.id" class="flex gap-x-4">
+                <div>
+                  <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{
+                      $t('square_meter')
+                    }} >=</label>
+                  <input v-model="form.square_meter" type="number" step="0.01"
+                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                         required/>
+                </div>
+                <div>
+                  <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{
+                      $t('number')
+                    }}</label>
+                  <input v-model="form.number" type="number"
+                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-16 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                         required/>
+                </div>
+              </div>
+              <div v-if="form.building?.id" class="flex flex-col gap-y-2">
+                <label>{{ $t('select_apartment') }}</label>
+                <!-- template -->
+                <vSelect
+                    class="vselect"
+                    v-model="form.apartment"
+                    :options="apartments.data ?? []"
+                    :get-option-label="apartmentLabel"
+                    track-by="id"
+                >
+                </vSelect>
+
+              </div>
             </div>
           </div>
 
@@ -130,7 +145,15 @@
 
           </div>
         </div>
-        <div v-if="form.apartments?.length || form.houses?.length">
+        <div>
+          <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{
+              $t('preferred_price')
+            }} ({{ $t('square_meter') }})</label>
+          <input v-model="form.preferred_price" type="text"
+                 class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                 required/>
+        </div>
+        <div v-if="form.apartment?.id || form.house?.id">
           <button v-if="!loading" type="button" @click="store"
                   class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
             {{ $t('save') }}
@@ -180,8 +203,10 @@ export default {
         floor: null,
         square_meter: null,
         rooms: null,
-        apartments: [],
-        houses: [],
+        apartment: null,
+        garage: null,
+        house: null,
+        preferred_price: null,
       },
       client: {
         name: null,
@@ -201,6 +226,7 @@ export default {
         }
       },
       houses: [],
+      garages: [],
     }
   },
   watch: {
@@ -211,6 +237,7 @@ export default {
         // this.getBuildingById();
         this.getFloorsByBuildingId();
         this.getApartments();
+        this.getGarages();
       } else {
         this.form.floor = null;
         this.form.apartments.data = [];
@@ -226,7 +253,7 @@ export default {
       this.getApartments();
     }
   },
-  props: ['buildings'],
+  props: ['buildings', 'request_id'],
   emits: ['updateList'],
   methods: {
     // getBuildingById() {
@@ -248,6 +275,18 @@ export default {
         }
       }).then((response) => {
         this.houses = response.data.data
+      }).catch((response) => {
+      })
+    },
+    getGarages() {
+      api.get("garages", {
+        params: {
+          status: 'active',
+          building_id: this.form.building.id,
+          limit: 200
+        }
+      }).then((response) => {
+        this.garages = response.data.data
       }).catch((response) => {
       })
     },
@@ -285,31 +324,39 @@ export default {
     houseLabel(a) {
       return a.address + ' (' + a.floors_sum_square_meter + ' ' + this.$t('square_meter') + ')';
     },
+    garageLabel(a) {
+      if (!a) return "";
+      const floor = a.floor ?? "—";
+      const number = a.number ?? "—";
+      const sqm = a.square_meter ?? "—";
+      return `${this.$t('floor')} ${floor} , No. ${number} , ${sqm} m²`;
+    },
     store() {
       let error = false;
       if (!this.client.name?.length || !this.client.phone_number?.length) {
         toast.error(this.$t('fill_client_info'));
         error = true;
       }
-      if (this.type === 'houses' && !this.form.houses?.length) {
+      if (this.type === 'houses' && !this.form.house?.id) {
         toast.error(this.$t('pick_houses'));
         error = true;
       }
-      if (this.type === 'apartments' && !this.form.apartments?.length) {
+      if (this.type === 'apartments' && !this.form.apartment?.id) {
         toast.error(this.$t('pick_apartments'));
         error = true;
       }
       if (!error) {
         this.loading = true;
-        api.post("requests", {
+        let url = 'requests';
+        if(this.request_id) {
+          url += '/' + this.request_id;
+        }
+        api.post(url, {
           name: this.client.name,
           phone_number: this.client.phone_number,
           type: this.type.key,
-          relation_ids: this.type.key === 'houses' ? this.form.houses?.map((house) => {
-            return house.id
-          }) : this.form.apartments?.map((apartment) => {
-            return apartment.id
-          }),
+          relation_id: this.type.key === 'houses' ? this.form.house.id : this.form.apartment.id,
+          preferred_price: this.form.preferred_price
         }).then((response) => {
           this.loading = false;
           toast.success(this.$t('request_successfully_created'));
@@ -319,7 +366,16 @@ export default {
           this.loading = false;
         })
       }
-    }
+    },
+    getRequestById() {
+      api.get("requests/"+this.request_id).then((response) => {
+        this.form = response.data.data
+        this.type = this.form.type;
+        this.client.name = this.form.name;
+        this.client.phone_number = this.form.phone_number;
+      }).catch((response) => {
+      })
+    },
   },
   mounted() {
     this.modalObj = new Modal(document.getElementById('add-edit-request'), {
@@ -331,6 +387,9 @@ export default {
     })
     this.modalObj.show();
     this.getHouses();
+    if(this.request_id) {
+      this.getRequestById();
+    }
   }
 }
 </script>

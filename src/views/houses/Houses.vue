@@ -72,9 +72,46 @@
             {{ price(house.price) }}
           </td>
           <td class="px-6 py-4">
-            <button type="button" @click="editHouse(house.id)"
-                    class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
-              {{ $t('update') }}
+            <div v-if="!house.loading" class="flex flex-wrap gap-y-2 gap-x-2">
+              <div class="flex flex-col gap-y-2" v-if="house.status === 'active'">
+                <button type="button" @click="editHouse(house.id)"
+                        class="text-white bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
+                  {{ $t('update') }}
+                </button>
+                <div class="flex gap-2">
+                  <!-- SALE -->
+                  <button
+                      type="button" @click="openSaleModal(house.id, 'sale')"
+                      class="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700 active:bg-emerald-800 focus:outline-none focus:ring-4 focus:ring-emerald-300 disabled:opacity-60 disabled:pointer-events-none dark:focus:ring-emerald-900"
+                  >
+                    <!-- money icon -->
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M3 7a2 2 0 0 1 2-2h14v2H5v10h14v2H5a2 2 0 0 1-2-2V7zm6 5a4 4 0 1 0 8 0 4 4 0 0 0-8 0zm2 0a2 2 0 1 1 4 0 2 2 0 0 1-4 0z"/></svg>
+                    {{ $t('sale') }}
+                  </button>
+
+                  <!-- RESERVE -->
+                  <button
+                      type="button" @click="openSaleModal(house.id, 'reserve')"
+                      class="inline-flex items-center gap-2 rounded-xl border border-amber-400 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800 hover:bg-amber-100 active:bg-amber-200 focus:outline-none focus:ring-4 focus:ring-amber-300 disabled:opacity-60 disabled:pointer-events-none dark:bg-amber-950/30 dark:text-amber-200 dark:hover:bg-amber-900/40 dark:focus:ring-amber-900"
+                  >
+                    <!-- bookmark icon -->
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor"><path d="M6 2h12a1 1 0 0 1 1 1v19l-7-4-7 4V3a1 1 0 0 1 1-1z"/></svg>
+                    {{ $t('reserve') }}
+                  </button>
+                </div>
+              </div>
+
+              <button v-if="house.status === 'reserved'" type="button" @click="cancelReserve(house)"
+                      class="text-white bg-rose-700 hover:bg-rose-800 focus:ring-4 focus:ring-rose-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-rose-600 dark:hover:bg-rose-700 focus:outline-none dark:focus:ring-rose-800">
+                {{ $t('cancel_reserve') }}
+              </button>
+            </div>
+            <button v-else type="button"
+                    class="text-white flex justify-center bg-indigo-700 hover:bg-indigo-800 focus:ring-4 focus:ring-indigo-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-indigo-600 dark:hover:bg-indigo-700 focus:outline-none dark:focus:ring-indigo-800">
+              <svg aria-hidden="true" class="w-6 h-6 text-gray-200 animate-spin dark:text-gray-600 fill-indigo-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+              </svg>
             </button>
           </td>
         </tr>
@@ -121,6 +158,8 @@
   </div>
   <AddEditHouse v-if="showAddEditHouseModal" v-bind:house_id="selectedHouseId" v-bind:locales="locales" @updateList="updateHouseList"/>
   <AddEditDesign v-if="showAddEditDesignModal" v-bind:design_id="selectedDesignId" v-bind:locales="locales" @updateList="updateDesignList"/>
+  <SaleModal v-if="showSaleModal" v-bind:house_id="selectedHouseId" v-bind:status="selectedSaleStatus" @updateList="updateHouseList"/>
+
 </template>
 
 <script>
@@ -128,17 +167,21 @@ import AddEditHouse from "@/views/houses/modals/AddEditHouse.vue";
 import AddEditDesign from "@/views/houses/modals/AddEditDesign.vue";
 import api from "@/utils/api.js";
 import {useToast} from "vue-toastification";
+import SaleModal from "@/views/sales/modals/SaleModal.vue";
 const toast = useToast();
 
 export default {
   components: {
+    SaleModal,
     AddEditHouse,
     AddEditDesign
   },
   data() {
     return {
+      showSaleModal: false,
       showAddEditHouseModal: false,
       showAddEditDesignModal: false,
+      selectedSaleStatus: null,
       locales: [],
       selectedHouseId: null,
       selectedDesignId: null,
@@ -160,6 +203,11 @@ export default {
     }
   },
   methods: {
+    openSaleModal(id, type) {
+      this.selectedHouseId = id;
+      this.selectedSaleStatus = type;
+      this.showSaleModal = true;
+    },
     createHouse() {
       this.selectedHouseId = null;
       this.showAddEditHouseModal = true;
@@ -232,6 +280,19 @@ export default {
       }).catch((response) => {
         house.active = !house.active;
       })
+    },
+    cancelReserve(house) {
+      if (confirm(this.$t('are_you_sure'))) {
+        house.loading = true;
+        api.patch("houses/" + house.id + "/cancelReserve")
+            .then((response) => {
+              toast.success(this.$t('reserve_canceled'));
+              house.status = 'active';
+              house.loading = false;
+            }).catch((response) => {
+          house.loading = false;
+        })
+      }
     },
   },
   mounted() {
