@@ -242,7 +242,6 @@ export default {
           price: this.form.price ? parseFloat(this.form.price) : null,
           deposit: this.form.deposit ? parseFloat(this.form.deposit) : null,
           repayment_months_quantity: this.form.repayment_months_quantity,
-          sale_date: this.form.date
         }).then((response) => {
           this.loading = false;
           toast.success(this.$t('reserve_successfully_update'));
@@ -273,7 +272,7 @@ export default {
       } : null
 
       this.form.type = this.sale.type ? {
-        name: $(this.sale.type),
+        name: this.$t(this.sale.type),
         key: this.sale.type
       } : null
       this.form.deposit = this.sale.deposit
