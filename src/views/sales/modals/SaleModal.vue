@@ -150,7 +150,7 @@
           <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{
               $t('repayment_months_quantity')
             }}</label>
-          <input v-model="form.repayment_months_quantity" type="text"
+          <input v-model="form.repayment_months_quantity" type="number"
                  class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                  required/>
           <p v-if="form.repayment_months_quantity && form.price">{{ $t('monthly_payment') }}: {{ price(Math.floor((form.price - (form.deposit ?? 0)) / form.repayment_months_quantity)) }}</p>
@@ -222,8 +222,16 @@ export default {
     'form.building'() {
       this.garages = [];
       this.getGarages()
+    },
+    'form.deposit'() {
+      if(this.form.price) {
+        if(this.form.deposit > this.form.price) {
+          this.form.deposit = this.form.price
+        }
+      }
     }
   },
+  emits: ['updateList'],
   methods: {
     setToday() {
       this.form.date = todayLocalISO();
