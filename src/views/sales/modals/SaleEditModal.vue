@@ -256,6 +256,12 @@ export default {
     this.modalObj.show();
     if(this.block === 'apartments') {
       this.getGarages();
+      this.form.garage = this.sale.garage_id ? {
+        square_meter: this.sale.garage_square_meter,
+        number: this.sale.garage_number,
+        id: this.sale.garage_id,
+        price_for_square: this.sale.garage_price_for_square,
+      } : null
     }
   }
 }
