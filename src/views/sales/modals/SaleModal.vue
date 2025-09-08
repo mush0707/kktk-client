@@ -357,9 +357,9 @@ export default {
           apartment_id: this.form.apartment?.id,
           house_id: this.form.house?.id,
           building_garage_id: this.form.garage?.id,
-          garage_price: this.form.garage_price,
-          price: this.form.price,
-          deposit: this.form.deposit,
+          garage_price: this.form.garage_price ? parseFloat(this.form.garage_price) : null,
+          price: this.form.price ? parseFloat(this.form.price) : null,
+          deposit: this.form.deposit ? parseFloat(this.form.deposit) : null,
           repayment_months_quantity: this.form.repayment_months_quantity,
           sale_date: this.form.date
         }).then((response) => {
