@@ -114,6 +114,15 @@ async function handleSubmit() {
                 placeholder="john@example.com"
             />
           </div>
+          <div>
+            <label class="label">{{ t("auth.password") }}</label>
+            <input
+                v-model="model.password"
+                class="input"
+                type="password"
+                required
+            />
+          </div>
         </div>
 
         <!-- Roles -->

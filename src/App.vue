@@ -26,7 +26,7 @@ const showShell = computed(() => auth.isAuthed && route.path !== '/login')
 
     <main class="h-screen overflow-y-auto bg-gray-50 dark:bg-gray-950">
       <!-- (optional) top spacer or header could go here -->
-      <div class="p-4">
+      <div>
         <router-view />
       </div>
     </main>
