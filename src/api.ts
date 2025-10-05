@@ -174,6 +174,97 @@ export const purchasingApi = {
     }).then(r => r.data),
 
 }
+export const interviewStageApi = {
+    list: (params) => api.get('/interview-stages', {
+        params: params
+    }).then(r => r.data),
+    get: (id) => api.get('/interview-stages/' + id).then(r => r.data),
+    delete: (id) => api.delete('/interview-stages/' + id).then(r => r.data),
+    async create(payload) {
+        const {data} = await api.post("/interview-stages", payload);
+        return data;
+    },
+    update(id, payload) {
+        return api.patch(`/interview-stages/${id}`, payload).then(r => r.data)
+    },
+}
+
+export const rolePositionApi = {
+    list: (params) => api.get('/role-positions', {
+        params: params
+    }).then(r => r.data),
+    get: (id) => api.get('/interview-stages/' + id).then(r => r.data),
+    delete: (id) => api.delete('/interview-stages/' + id).then(r => r.data),
+    async create(payload) {
+        const {data} = await api.post("/interview-stages", payload);
+        return data;
+    },
+    updateStages(id: number, payload: any) {
+        return api.patch(`/role-positions/${id}/stages`, payload).then(r => r.data)
+    },
+}
+
+export const vacancyApi = {
+    list: (params: any) => api.get('/vacancies', {
+        params: params
+    }).then(r => r.data),
+
+    async create(payload) {
+        const {data} = await api.post("/vacancies", payload);
+        return data;
+    },
+    update(id, payload) {
+        return api.patch(`/vacancies/${id}`, payload).then(r => r.data)
+    },
+
+    approveStatus(id: number) {
+        return api.patch(`/vacancies/${id}/approve`).then(r => r.data)
+    },
+
+    cancelStatus(id: number) {
+        return api.patch(`/vacancies/${id}/cancel`).then(r => r.data)
+    },
+
+    closeStatus(id: number) {
+        return api.patch(`/vacancies/${id}/close`).then(r => r.data)
+    },
+
+    addCadidate(id, cadidateId) {
+        console.log(id, cadidateId)
+        return api.post(`/vacancies/${id}/candidate/add`, {candidate_id: cadidateId}).then(r => r.data)
+    },
+
+    removeCadidate(id: number, cadidateId: number) {
+        return api.post(`/vacancies/${id}/candidate/remove`, {candidate_id: cadidateId}).then(r => r.data)
+    },
+
+    hireCandidate(id: number, payload: { candidate_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/hire`, payload);
+    },
+
+    rejectCandidate(id: number, payload: { candidate_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/reject`, payload);
+    },
+
+    setCandidateStage(id: number, payload: { candidate_id: number, stage_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/stage`, payload);
+    }
+}
+
+export const candidateApi = {
+    list: (params: any) => api.get('/candidates', {
+        params: params
+    }).then(r => r.data),
+
+    create: (payload: any) => api.post('/candidates', payload).then(r => r.data),
+    update: (id: number, payload: any) => api.post(`/candidates/${id}`, payload).then(r => r.data),
+    getDocTypes: () => api.get('/candidates/doc-types').then(r => r.data),
+    archiveDocument: (id: number) => {
+        console.log(id)
+        api.patch(`/candidates/${id}/documents/${id}/archive`).then(r => r.data)
+    },
+}
+
 export const purchasingPartnerApi = {
     list: (params) => api.get('/purchasing/partners', {params}).then(r => r.data),
     get: (id) => api.get('/purchasing/partners/'+id).then(r => r.data),
@@ -183,7 +274,6 @@ export const purchasingPartnerApi = {
         return data;
     },
     update(id, payload) {
-        console.log(payload);
         return api.post(`/purchasing/partners/${id}`, payload).then(r => r.data)
     },
     assignManager: (id, managerId) => api.patch(`/purchasing/partners/${id}/${managerId}`).then(r => r.data),
