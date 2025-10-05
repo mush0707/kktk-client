@@ -1,345 +1,499 @@
-<!-- src/views/purchasing/components/application/NewApplication.vue -->
+<!-- src/views/demand/DemandToStoragePage.vue -->
 <template>
-  <div class="flex flex-col gap-y-4 px-4 py-4">
-    <!-- Head removed: department/creator block is NOT needed; department comes from actor -->
-
-    <!-- Products -->
-    <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div class="flex items-center justify-between p-4 border-b">
-        <div class="font-medium">Ապրանքներ</div>
-        <button class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm" @click="addProductRow">Ավելացնել տող
-        </button>
-      </div>
-      <table class="min-w-full text-sm">
-        <thead class="bg-gray-50">
-        <tr>
-          <th class="px-4 py-3 text-left w-[420px]">Ապրանք</th>
-          <th class="px-4 py-3 text-right w-[160px]">Քանակ</th>
-          <th class="px-4 py-3 text-right w-[160px]">Չափ</th>
-          <th class="px-4 py-3 w-[1%]"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(it,i) in form.products" :key="it.uid" class="bg-white border-b border-gray-200">
-          <td class="px-4 py-2">
-            <div class="flex gap-2">
-              <input
-                  v-model="it.query"
-                  @input="onProductQuery(it)"
-                  placeholder="Անուն / SKU"
-                  class="border border-gray-300 rounded-xl px-3 py-2 w-full"
-              />
-              <div class="relative">
-                <button class="px-3 py-2 rounded-xl border hover:bg-gray-50">Ընտրել</button>
-                <div v-if="it.open"
-                     class="absolute z-10 mt-1 bg-white border rounded-xl w-[420px] max-h-72 overflow-auto shadow">
-                  <div
-                      v-for="p in it.options"
-                      :key="p.id"
-                      class="px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                      @click="selectProduct(it,p)"
-                  >
-                    <div class="font-medium">{{ p.name }}</div>
-                    <div class="text-xs text-gray-500">{{ p.sku ?? p.slug }}</div>
-                  </div>
-                  <div v-if="!it.loading && it.options.length===0" class="px-3 py-2 text-sm text-gray-500">Չկա</div>
-                  <div v-if="it.loading" class="px-3 py-2 text-sm text-gray-500">Փնտրում է…</div>
-                </div>
-              </div>
-            </div>
-            <div class="text-xs text-slate-500 mt-1" v-if="it.product">
-              Ընտրված՝ <b>{{ it.product.name }}</b>
-            </div>
-          </td>
-
-          <td class="px-4 py-2 text-right">
-            <input type="number" min="0" step="0.001" v-model.number="it.qty"
-                   class="border border-gray-300 rounded-xl px-3 py-2 w-40 text-right"/>
-          </td>
-
-          <td class="px-4 py-2 text-right">
-            <select v-model="it.measure" class="border border-gray-300 rounded-xl px-3 py-2 w-40">
-              <option v-for="u in measureUnitsFor(it.product)" :key="u" :value="u">{{ u }}</option>
-            </select>
-          </td>
-
-          <td class="px-4 py-2 text-right">
-            <button class="px-2 py-1 rounded border hover:bg-gray-50" @click="removeProductRow(i)">Ջնջել</button>
-          </td>
-        </tr>
-
-        <tr v-if="form.products.length===0">
-          <td colspan="4" class="px-4 py-6 text-center text-gray-500">Ավելացրեք գոնե մեկ ապրանք</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Offerings -->
-    <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-      <div class="flex items-center justify-between p-4 border-b">
-        <div class="font-medium">Աշխատանք / Ծառայություն</div>
-        <button class="px-3 py-2 rounded-xl border hover:bg-gray-50 text-sm" @click="addOfferingRow">Ավելացնել տող
-        </button>
-      </div>
-      <table class="min-w-full text-sm">
-        <thead class="bg-gray-50">
-        <tr>
-          <th class="px-4 py-3 text-left w-[420px]">Առաջարկ</th>
-          <th class="px-4 py-3 text-right w-[160px]">Քանակ</th>
-          <th class="px-4 py-3 w-[1%]"></th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr v-for="(it,i) in form.offerings" :key="it.uid" class="bg-white border-b border-gray-200">
-          <td class="px-4 py-2">
-            <div class="flex gap-2">
-              <input
-                  v-model="it.query"
-                  @input="onOfferingQuery(it)"
-                  placeholder="Փնտրել առաջարկ"
-                  class="border border-gray-300 rounded-xl px-3 py-2 w-full"
-              />
-              <div class="relative">
-                <button class="px-3 py-2 rounded-xl border hover:bg-gray-50">Ընտրել</button>
-                <div v-if="it.open"
-                     class="absolute z-10 mt-1 bg-white border rounded-xl w-[420px] max-h-72 overflow-auto shadow">
-                  <div
-                      v-for="o in it.options"
-                      :key="o.id"
-                      class="px-3 py-2 hover:bg-gray-50 cursor-pointer"
-                      @click="selectOffering(it,o)"
-                  >
-                    <div class="font-medium">{{ o.name }}</div>
-                    <div class="text-xs text-gray-500">{{ o.block }}</div>
-                  </div>
-                  <div v-if="!it.loading && it.options.length===0" class="px-3 py-2 text-sm text-gray-500">Չկա</div>
-                  <div v-if="it.loading" class="px-3 py-2 text-sm text-gray-500">Փնտրում է…</div>
-                </div>
-              </div>
-            </div>
-            <div class="text-xs text-slate-500 mt-1" v-if="it.offering">
-              Ընտրված՝ <b>{{ it.offering.name }}</b> · {{ it.offering.block }}
-            </div>
-          </td>
-
-          <td class="px-4 py-2 text-right">
-            <input type="number" min="1" step="1" v-model.number="it.qty"
-                   class="border border-gray-300 rounded-xl px-3 py-2 w-40 text-right"/>
-          </td>
-
-          <td class="px-4 py-2 text-right">
-            <button class="px-2 py-1 rounded border hover:bg-gray-50" @click="removeOfferingRow(i)">Ջնջել</button>
-          </td>
-        </tr>
-
-        <tr v-if="form.offerings.length===0">
-          <td colspan="3" class="px-4 py-6 text-center text-gray-500">Ավելացրեք առաջարկ (անհրաժեշտության դեպքում)</td>
-        </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Actions -->
-    <div class="flex items-center justify-end gap-2">
-      <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" @click="resetForm">Մաքրել ձևը</button>
-      <button class="px-4 py-2 rounded-xl bg-indigo-900 text-white hover:bg-indigo-800" :disabled="submitLoading"
-              @click="submit">
-        <span v-if="!submitLoading">Ստեղծել հայտ</span>
-        <span v-else>Պահպանում…</span>
+  <div class="flex flex-col gap-y-4">
+    <div class="flex px-4 pt-4" v-if="cartCount > 0">
+      <button
+          class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border bg-indigo-900 text-white"
+          @click="openCart = true"
+      >
+        Նոր պահանջագրի ցանկ
+        <span class="text-xs px-2 py-0.5 rounded bg-white/10 border border-white/20">
+            {{ cartCount }}
+          </span>
       </button>
     </div>
+    <!-- Storage select -->
+    <div class="px-4">
+      <div class="grid md:grid-cols-3 gap-2 items-end">
+        <div class="flex flex-col gap-y-2">
+          <label class="text-xs text-gray-500">Պահեստ</label>
+          <select
+              v-model.number="selectedStorageId"
+              class="border border-gray-300 rounded-xl px-3 py-2 w-full"
+              @change="onStorageChange"
+          >
+            <option :value="undefined">— Ընտրել պահեստ —</option>
+            <option
+                v-for="s in storagesFiltered"
+                :key="s.id"
+                :value="s.id"
+            >
+              {{ s.address }} — {{ s.cell ? 'բջջային' : (s.industrial ? 'արտադրական' : 'սովորական') }}
+            </option>
+          </select>
+        </div>
 
-    <p v-if="submitError" class="text-red-600 text-sm">{{ submitError }}</p>
-    <p v-if="submitSuccess" class="text-emerald-600 text-sm">Հայտը հաջողությամբ ստեղծվեց։</p>
+        <!-- Search -->
+        <div class="flex flex-col gap-y-2 pt-2">
+          <label class="text-xs text-gray-500">Փնտրել ապրանք</label>
+          <div class="flex gap-2">
+            <input
+                v-model="search"
+                class="border border-gray-300 rounded-xl px-3 py-2 w-full"
+                placeholder="Անուն / SKU"
+                @input="onSearchInput"
+            />
+            <button
+                class="px-4 py-2 rounded-xl border border-gray-300 hover:bg-gray-50"
+                @click="reloadFromStart"
+                :disabled="!selectedStorageId"
+            >
+              Կիրառել
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products table -->
+    <div class="px-4" v-if="selectedStorageId">
+      <div class="bg-white border border-gray-300 rounded-2xl overflow-hidden">
+        <table class="min-w-full text-sm">
+          <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-4 text-left">Ապրանք</th>
+            <th class="px-6 py-4 text-right">Մնացորդ</th>
+            <th class="px-6 py-4 text-right">Ավելացված</th>
+            <th class="px-6 py-4 w-[1%]"></th>
+          </tr>
+          </thead>
+          <tbody>
+          <tr
+              v-for="row in items"
+              :key="row.product_id"
+              class="bg-white border-b border-gray-200"
+          >
+            <td class="px-6 py-4">
+              <div class="font-medium">
+                {{ row.product_name }}
+                <span v-if="row.product_sku" class="text-gray-400"> ({{ row.product_sku }})</span>
+              </div>
+              <div v-if="row.product?.characteristics?.length" class="mt-1 flex flex-wrap gap-1">
+                  <span
+                      v-for="c in row.product.characteristics"
+                      :key="c.id || c.name"
+                      class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700"
+                  >
+                    {{ c.name }}
+                  </span>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 text-right">
+              {{ fmt(row.available_qty) }}
+              <span class="text-gray-500">{{ unitShort(row.measure) }}</span>
+            </td>
+
+            <td class="px-6 py-4 text-right">
+              <div class="mt-1 text-xs text-slate-500" v-if="addedQtyFor(row) > 0">
+                <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 bg-slate-100">
+                  {{ $t('added','Ավելացված') }}:
+                  <b class="tabular-nums">{{ fmt(addedQtyFor(row)) }}</b>
+                  <span v-if="row.measure" class="text-slate-400">{{ unitShort(row.measure) }}</span>
+                </span>
+              </div>
+            </td>
+
+            <td class="px-6 py-4 text-right">
+              <button
+                  class="flex items-center gap-x-2 px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  @click="openAdd(row)"
+              >
+                Ավելացնել
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+              </button>
+            </td>
+          </tr>
+
+          <tr v-if="!loading && items.length===0">
+            <td colspan="4" class="px-4 py-8 text-center text-gray-500">Տվյալներ չկան</td>
+          </tr>
+          </tbody>
+        </table>
+
+        <div class="p-3 text-center text-sm" v-if="loading">Լցվում է…</div>
+      </div>
+
+      <!-- Infinite scroll sentinel -->
+      <div ref="sentinel" class="h-12 flex items-center justify-center">
+        <span v-if="loading && items.length>0" class="text-sm text-gray-500">Լցվում է…</span>
+        <span v-else-if="endReached && items.length>0" class="text-xs text-gray-400">Վերջ</span>
+      </div>
+    </div>
+
+    <!-- Add modal -->
+    <div v-if="modal.open" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-4 w-full max-w-lg">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-medium">Ավելացնել պահանջագիր</div>
+          <button class="p-1" @click="modal.open=false">✕</button>
+        </div>
+
+        <div class="space-y-3">
+          <div class="text-sm">
+            <div class="font-medium">
+              {{ modal.row?.product_name }}
+              <span v-if="modal.row?.product_sku" class="text-gray-400"> ({{ modal.row.product_sku }})</span>
+            </div>
+            <div v-if="modal.row?.product?.characteristics?.length" class="mt-1 flex flex-wrap gap-1">
+              <span
+                  v-for="c in modal.row.product.characteristics"
+                  :key="c.id || c.name"
+                  class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700"
+              >
+                {{ c.name }}
+              </span>
+            </div>
+            <div class="text-xs text-gray-500 mt-2">
+              Հասանելի՝ <b>{{ fmt(modal.row?.available_qty) }}</b> {{ unitShort(modal.row?.measure) }}
+            </div>
+            <div v-if="addedQty(modal.row?.storage_product_id) > 0" class="text-xs text-blue-700 mt-1">
+              Արդեն ավելացված՝ <b>{{ fmt(addedQty(modal.row?.storage_product_id)) }}</b> {{ unitShort(modal.row?.measure) }}
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-gray-500">Քանակ</label>
+            <input
+                v-model.number="modal.qty"
+                type="number"
+                min="0"
+                step="0.001"
+                class="border rounded-xl px-3 py-2 w-full"
+            />
+          </div>
+
+          <div class="flex justify-end gap-2">
+            <button class="px-4 py-2 border rounded-xl" @click="modal.open=false">Չեղարկել</button>
+            <button
+                class="px-4 py-2 border rounded-xl bg-gray-900 text-white"
+                :disabled="!canAdd"
+                @click="confirmAdd"
+            >
+              Ավելացնել
+            </button>
+          </div>
+
+          <p v-if="modal.error" class="text-sm text-red-600">{{ modal.error }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart modal -->
+    <div v-if="openCart" class="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl p-4 w-full max-w-2xl">
+        <div class="flex items-center justify-between mb-3">
+          <div class="font-medium">Նոր պահանջագրի ցանկ</div>
+          <button class="p-1" @click="openCart=false">✕</button>
+        </div>
+
+        <div class="space-y-3">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left">Ապրանք</th>
+              <th class="px-3 py-2 text-right">Քանակ</th>
+              <th class="px-3 py-2 text-right">Չափ</th>
+              <th class="px-3 py-2 w-[1%]"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="it in cartList" :key="it.storage_product_id" class="border-t">
+              <td class="px-3 py-2">
+                <div class="font-medium">{{ it.product_name }}</div>
+                <div v-if="it.product?.characteristics?.length" class="mt-1 flex flex-wrap gap-1">
+                    <span
+                        v-for="c in it.product.characteristics"
+                        :key="c.id || c.name"
+                        class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700"
+                    >
+                      {{ c.name }}
+                    </span>
+                </div>
+              </td>
+              <td class="px-3 py-2 text-right tabular-nums">{{ fmt(it.qty) }}</td>
+              <td class="px-3 py-2 text-right">{{ unitShort(it.measure) }}</td>
+              <td class="px-3 py-2 text-right">
+                <button class="px-2 py-1 rounded border hover:bg-gray-50" @click="removeFromCart(it.storage_product_id)">
+                  Հեռացնել
+                </button>
+              </td>
+            </tr>
+
+            <tr v-if="cartList.length===0">
+              <td colspan="4" class="px-3 py-6 text-center text-gray-500">Ցանկը դատարկ է</td>
+            </tr>
+            </tbody>
+          </table>
+
+          <!-- Actions by actor kind are BE-driven later; for now just render placeholders -->
+          <div class="flex justify-end gap-2 pt-2 border-t">
+            <button class="px-4 py-2 border rounded-xl" @click="openCart=false">Փակել</button>
+            <!-- draft -->
+            <button
+                class="px-4 py-2 border rounded-xl bg-gray-900 text-white"
+                :disabled="submitting || cartList.length===0"
+                @click="sendDemand('draft')"
+            >
+              <span v-if="submitting && submitAction==='draft'">Պահպ. …</span>
+              <span v-else>Պահպանել սևագիր</span>
+            </button>
+
+            <!-- primary per-actor button -->
+            <button
+                class="px-4 py-2 border rounded-xl bg-blue-600 text-white"
+                :disabled="submitting || cartList.length===0 || !primaryAction"
+                @click="sendDemand(primaryAction)"
+            >
+              <span v-if="submitting && submitAction===primaryAction">{{ primaryLabel }} …</span>
+              <span v-else>{{ primaryLabel }}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import {ref, reactive, onMounted} from 'vue'
-import {purchasingApi, productsApi, offeringsApi, authApi} from '@/api.js'
+import { ref, reactive, computed, onMounted, onBeforeUnmount, watch } from 'vue'
+import { mainApi, wmsApi, authApi, demandApi } from '@/api.js' // authApi → session actor
+import { useRoute } from 'vue-router'
 
-type Product = {
-  id: number;
-  name: string;
-  sku?: string | null;
-  slug?: string | null;
-  measure_type?: 'piece' | 'capacity' | 'weight' | 'length'
-}
-type Offering = { id: number; name: string; block: 'service' | 'work' }
-
+// ─── State
+const route = useRoute()
 const actor = ref<any>(null)
+const storages = ref<any[]>([])
+const selectedStorageId = ref<number|undefined>(undefined)
+const submitting = ref(false)
+const submitAction = ref<string|null>(null)
+// list + pagination
+const items = ref<any[]>([])
+const loading = ref(false)
+const endReached = ref(false)
+const limit = ref(50)
+const offset = ref(0)
+const search = ref('')
+const primaryLabel = computed(() => {
+  switch (primaryAction.value) {
+    case 'submit_for_approval':  return 'Ուղարկել հաստատման'
+    case 'submit_to_warehouse':  return 'Ուղարկել պահեստ'
+    default:                     return ''
+  }
+})
+// infinite scroll
+const sentinel = ref<HTMLElement|null>(null)
+let observer: IntersectionObserver|null = null
 
-const form = reactive({
-  storage_id:    undefined as number | undefined,
-  department_id: undefined as number | undefined, // ← comes from actor
-  products: [] as Array<{
-    uid: string;
-    product: Product | null;
-    query: string;
-    options: Product[];
-    loading: boolean;
-    open: boolean;
-    qty: number;
-    measure: string
-  }>,
-  offerings: [] as Array<{
-    uid: string;
-    offering: Offering | null;
-    query: string;
-    options: Offering[];
-    loading: boolean;
-    open: boolean;
-    qty: number
-  }>,
+// debounce
+let searchTimer: any = null
+const onSearchInput = () => {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => reloadFromStart(), 300)
+}
+
+// cart
+type CartRow = { product_id:number; product_name:string; measure:string|null|undefined; qty:number; product?:any }
+const cart = reactive<Record<number, CartRow>>({})
+const cartCount = computed(() => Object.keys(cart).length)
+const cartList = computed(() => Object.values(cart))
+
+// UI modals
+const modal = reactive({
+  open:false,
+  row:null as any,
+  qty: 0,
+  error:''
+})
+const openCart = ref(false)
+const primaryAction = computed<null | 'submit_for_approval' | 'submit_to_warehouse'>(() => {
+  const kind = actor.value?.kind
+  if (!kind) return null
+
+  if (kind === 'superadmin') return 'submit_to_warehouse'
+  if (kind === 'storekeeper') return 'submit_to_warehouse'
+  if (kind === 'department_leader') return 'submit_to_warehouse'
+
+  if (kind === 'storage_department_leader') return 'submit_for_approval'
+
+  // staff stay the same
+  if (kind === 'storage_department_staff' || kind === 'department_staff') {
+    return 'submit_for_approval'
+  }
+  return null
+})
+// 🔁 CHANGED: storage_department_leader can only draft / submit_for_approval
+
+// ─── Helpers
+function fmt(n:any) { return Number(n||0).toLocaleString(undefined,{ maximumFractionDigits: 6 }) }
+function unitShort(m:any) {
+  const key = String(m||'').toLowerCase()
+  return ({kg:'կգ', g:'գ', tonn:'տ', t:'տ', l:'լ', ml:'մլ', m3:'մ³', m:'մ', cm:'սմ', mm:'մմ', piece:'հատ', pcs:'հատ'})[key] || ''
+}
+function addedQty(product_id:number) {
+  return cart[product_id]?.qty || 0
+}
+
+async function sendDemand(action: 'draft'|'submit_for_approval'|'submit_to_warehouse') {
+  if (!selectedStorageId.value) return
+  if (cartList.value.length === 0) return
+
+  submitting.value = true
+  submitAction.value = action
+  try {
+    const payload = {
+      storage_id: selectedStorageId.value,
+      action,
+      items: cartList.value.map(it => ({
+        storage_product_id: it.storage_product_id,
+        qty: it.qty,
+        measure: it.measure ?? null,
+      })),
+    }
+    await demandApi.create(selectedStorageId.value, payload)
+
+    // success → մաքրում ենք զամբյուղը, փակենք մոդալը,
+    // ցանկալի է նաև մի փոքր toaster/alert
+    Object.keys(cart).forEach(k => delete cart[Number(k)])
+    openCart.value = false
+    // optional: alert('Ուղարկվեց հաջողությամբ')
+  } catch (e:any) {
+    // optional: alert(e?.response?.data?.message || e.message || 'Սխալ ուղարկման ժամանակ')
+  } finally {
+    submitting.value = false
+    submitAction.value = null
+  }
+}
+// row-ի already-added քանակը վերցնենք զամբյուղից
+function addedQtyFor(row: any) {
+  return cart[row.storage_product_id]?.qty || 0
+}
+
+
+// ─── Actor-aware storage filtering (BE should drive)
+const storagesFiltered = computed(() => {
+  // Եթե backend-ը երբևէ վերադարձնում է {exclude_storage_ids:[...]} կամ {own_storage_ids:[...]} — օգտագործիր այստեղ:
+  const excl: number[] = actor.value?.exclude_storage_ids ?? []
+  return storages.value.filter(s => !excl.includes(s.id))
 })
 
-function addProductRow() {
-  form.products.push({
-    uid: crypto.randomUUID(),
-    product: null,
-    query: '',
-    options: [],
-    loading: false,
-    open: false,
-    qty: 1,
-    measure: 'pcs'
-  })
-}
-
-function removeProductRow(i: number) {
-  form.products.splice(i, 1)
-}
-
-function addOfferingRow() {
-  form.offerings.push({
-    uid: crypto.randomUUID(),
-    offering: null,
-    query: '',
-    options: [],
-    loading: false,
-    open: false,
-    qty: 1
-  })
-}
-
-function removeOfferingRow(i: number) {
-  form.offerings.splice(i, 1)
-}
-
-function measureUnitsFor(p: Product | null) {
-  const map: any = {piece: ['pcs', 'pack'], weight: ['kg', 'g'], length: ['m', 'cm'], capacity: ['l', 'ml']}
-  return map[p?.measure_type || 'piece'] || ['pcs']
-}
-
-async function onProductQuery(it: any) {
-  it.loading = true
-  try {
-    it.options = await productsApi.search({q: it.query, per_page: 15}) || []
-  } finally {
-    it.loading = false;
-    it.open = true
-  }
-}
-
-function selectProduct(it: any, p: Product) {
-  it.product = p;
-  it.open = false;
-  if (!it.measure) it.measure = measureUnitsFor(p)[0]
-}
-
-async function onOfferingQuery(it: any) {
-  it.loading = true
-  try {
-    it.options = await offeringsApi.search({q: it.query, per_page: 15}) || []
-  } finally {
-    it.loading = false;
-    it.open = true
-  }
-}
-
-function selectOffering(it: any, o: Offering) {
-  it.offering = o;
-  it.open = false
-}
-
-const submitLoading = ref(false)
-const submitError = ref('')
-const submitSuccess = ref(false)
-
-async function submit() {
-  submitError.value = ''; submitSuccess.value = false
-
-  const isSuper = String(actor.value?.kind || '').toLowerCase() === 'superadmin'
-  const hasDep  = Number.isFinite(Number(form.department_id))
-  const hasStor = Number.isFinite(Number(form.storage_id))
-
-  if (!isSuper && !hasDep && !hasStor) {
-    submitError.value = 'Actor-ից պետք է գա department_id կամ storage_id'
-    return
-  }
-
-  const productItems  = form.products
-      .filter(p => p.product && p.qty > 0)
-      .map(p => ({ product_id: p.product!.id, qty: p.qty, measure: p.measure }))
-
-  const offeringItems = form.offerings
-      .filter(o => o.offering && o.qty > 0)
-      .map(o => ({ offering_id: o.offering!.id, qty: o.qty }))
-
-  if (!productItems.length && !offeringItems.length) {
-    submitError.value = 'Ավելացրեք ապրանք կամ առաջարկ'
-    return
-  }
-
-  submitLoading.value = true
-  try {
-    const payload: any = { products: productItems, offerings: offeringItems }
-    if (hasDep)      payload.department_id = Number(form.department_id)
-    else if (hasStor) payload.storage_id   = Number(form.storage_id)
-    // if superadmin with neither — send without ids; BE decides default
-
-    await purchasingApi.create(payload)
-    submitSuccess.value = true
-    resetForm()
-  } catch (e: any) {
-    submitError.value = e?.response?.data?.message || 'Չհաջողվեց պահպանել'
-  } finally { submitLoading.value = false }
-}
-
-function resetForm() {
-  form.products = [];
-  form.offerings = [];
-  addProductRow()
-}
-
-// Load actor and derive department_id
+// ─── Data loading
 async function loadActor() {
+  // session/actor → { user:{id,...}, roles:[...], exclude_storage_ids?:number[] }
+  try { actor.value = await authApi.getActor() } catch { actor.value = null }
+}
+
+async function loadStorages() {
+  // ցուցադրում ենք բոլոր պահեստները (հետագայում actor-ի հիման վրա backend-ը կարող է վերադարձնել already-filtered)
+  try { storages.value = await wmsApi.getStorages({cell: 0}) } catch { storages.value = [] }
+}
+
+async function fetchPage() {
+  if (!selectedStorageId.value) return
+  if (loading.value || endReached.value) return
+
+  loading.value = true
   try {
-    const a = await authApi.getActor()
-
-    const depId =
-        Number(a?.department_id) ||
-        Number(a?.department?.id) ||
-        (Array.isArray(a?.department_ids) ? Number(a.department_ids[0]) : NaN)
-
-    const storId =
-        Number(a?.storage_id) ||
-        Number(a?.storage?.id) ||
-        (Array.isArray(a?.storage_ids) ? Number(a.storage_ids[0]) : NaN)
-
-    form.department_id = Number.isFinite(depId) ? depId : undefined
-    form.storage_id    = Number.isFinite(storId) ? storId : undefined
-
-    // If both exist, prefer department_id. If neither exists, keep undefined.
-  } catch {
-    form.department_id = undefined
-    form.storage_id    = undefined
+    const page = await mainApi.getDemandProducts(selectedStorageId.value, {
+      limit: limit.value,
+      offset: offset.value,
+      search: (search.value||'').trim() || undefined,
+    })
+    const list = Array.isArray(page) ? page : (page?.data ?? page?.rows ?? [])
+    items.value.push(...list)
+    offset.value += list.length
+    if (list.length < limit.value) endReached.value = true
+  } finally {
+    loading.value = false
   }
 }
 
+async function reloadFromStart() {
+  endReached.value = false
+  items.value = []
+  offset.value = 0
+  await fetchPage()
+}
+
+function startObserver() {
+  if (!sentinel.value) return
+  observer = new IntersectionObserver((entries) => {
+    const [entry] = entries
+    if (entry.isIntersecting) fetchPage()
+  })
+  observer.observe(sentinel.value)
+}
+
+function stopObserver() {
+  if (observer && sentinel.value) observer.unobserve(sentinel.value)
+  observer = null
+}
+
+function onStorageChange() {
+  // reset list when storage changes
+  reloadFromStart()
+}
+
+// ─── Add to cart
+const canAdd = computed(() =>
+    modal.open &&
+    modal.row &&
+    Number(modal.qty) > 0
+)
+
+function openAdd(row:any) {
+  modal.row = row
+  modal.qty = 0
+  modal.error = ''
+  modal.open = true
+}
+
+function confirmAdd() {
+  const r = modal.row
+  const qty = Number(modal.qty || 0)
+  if (!r || qty <= 0) return
+
+  const id = Number(r.storage_product_id)
+  const prev = cart[id]?.qty || 0
+  cart[id] = {
+    storage_product_id: id,
+    product_name: r.product_name,
+    measure: r.measure,
+    qty: prev + qty,
+    product: r.product
+  }
+  modal.open = false
+}
+
+// remove from cart
+function removeFromCart(product_id:number) {
+  delete cart[product_id]
+}
+
+// ─── Lifecycle
 onMounted(async () => {
-  await loadActor();
-  resetForm()
+  await loadActor()
+  await loadStorages()
+  startObserver()
+})
+
+onBeforeUnmount(() => stopObserver())
+
+// if route storage param used in future
+watch(() => route.fullPath, () => {
+  // placeholder for deep-link navigation
 })
 </script>

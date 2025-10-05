@@ -19,7 +19,13 @@
               :class="tabBtnClass('collect')"
               @click="tab='collect'"
           >
-            Հավաքագրել
+            Հայտերի հավաքագրում
+          </button>
+          <button
+              :class="tabBtnClass('stages')"
+              @click="tab='stages'"
+          >
+            Փուլեր / Ակտեր
           </button>
         </div>
       </div>
@@ -27,7 +33,8 @@
 
     <!-- Body -->
     <ApplicationOrderList v-if="tab==='list'" />
-    <CollectApplicationOrder v-else />
+    <ApplicationOrderStageControl v-if="tab==='stages'" />
+    <CollectApplicationOrder v-else-if="tab==='collect'" />
   </div>
 </template>
 
@@ -35,10 +42,11 @@
 import { ref } from 'vue'
 import ApplicationOrderList from './components/order/ApplicationOrderList.vue'
 import CollectApplicationOrder from './components/order/CollectApplicationOrder.vue'
+import ApplicationOrderStageControl from './components/order/ApplicationOrderStageControl.vue'
 
-const tab = ref<'list'|'collect'>('list')
+const tab = ref<'list'|'collect'|'stages'>('list')
 
-const tabBtnClass = (k:'list'|'collect') =>
+const tabBtnClass = (k:'list'|'collect'|'stages') =>
     `px-3 py-2 rounded-xl border border-indigo-900 text-sm ${
         tab.value===k ? 'bg-indigo-900 text-white' : 'bg-white hover:bg-gray-50'
     }`
