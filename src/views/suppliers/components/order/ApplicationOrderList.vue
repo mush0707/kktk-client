@@ -30,6 +30,20 @@ function canSendToApprove(row:any){
   const isCreator = Number(row.creator_id) === Number(actor.value?.user?.id)
   return isCreator && (isStaff() || isLeader())
 }
+
+function canStop(row:any) {
+  if (row.status !== 'active') return false
+  return isLeader();
+}
+
+function canFinish(row:any) {
+  if (row.status !== 'active') return false
+  return isLeader();
+}
+function canDecline(row:any) {
+  if (row.status !== 'active') return false
+  return isLeader();
+}
 function canSendToPurchasing(row: any) {
   const isCreator = Number(row.creator_id) === Number(actor.value?.user?.id)
   if (isLeader() && row.status === 'pending' && isCreator) return true
@@ -50,9 +64,50 @@ async function onSendToApprove(row: any) {
   if (!canSendToApprove(row)) return
   submittingId.value = row.id
   try {
-    await ordersApi.sendToApprove(row.id, { status: 'send_to_approve' })
+    await ordersApi.sendToApprove(row.id)
     row.status = 'send_to_approve'
     setFlash('Ուղարկվեց հաստատման')
+  } catch (e:any) {
+    setFlash(e?.response?.data?.message || 'Չհաջողվեց ուղարկել հաստատման')
+  } finally {
+    submittingId.value = null
+  }
+}
+async function onStop(row: any) {
+  if (!canSendToApprove(row)) return
+  submittingId.value = row.id
+  try {
+    await ordersApi.onStop(row.id)
+    row.status = 'on_stop'
+    setFlash('Պայմանագիրը կանգնեցվեց')
+  } catch (e:any) {
+    setFlash(e?.response?.data?.message || 'Չհաջողվեց ուղարկել հաստատման')
+  } finally {
+    submittingId.value = null
+  }
+}
+
+async function onFinish(row: any) {
+  if (!canFinish(row)) return
+  submittingId.value = row.id
+  try {
+    await ordersApi.onFinish(row.id)
+    row.status = 'on_stop'
+    setFlash('Պատվերը հաջողությամբ ավարտվեց')
+  } catch (e:any) {
+    setFlash(e?.response?.data?.message || 'Չհաջողվեց ուղարկել հաստատման')
+  } finally {
+    submittingId.value = null
+  }
+}
+
+async function onDecline(row: any) {
+  if (!canDecline(row)) return
+  submittingId.value = row.id
+  try {
+    await ordersApi.onDecline(row.id)
+    row.status = 'on_stop'
+    setFlash('Պատվերը հաջողությամբ ավարտվեց')
   } catch (e:any) {
     setFlash(e?.response?.data?.message || 'Չհաջողվեց ուղարկել հաստատման')
   } finally {
@@ -118,16 +173,20 @@ const STATUS_LABELS: Record<string, string> = {
   sent: 'Ուղարկված',
   done: 'Ավարտված',
   cancelled: 'Չեղարկված',
+  active: 'Ակտիվ',
+  rejected: 'Չեղարկված (գնումներից)'
 }
 function statusLabel(s?: string){ return STATUS_LABELS[s || ''] || s || '—' }
 function statusClass(s?: string){
   if (s === 'done') return 'bg-emerald-100 text-emerald-700'
+  if (s === 'active') return 'bg-emerald-100 text-emerald-700'
   if (s === 'processing') return 'bg-indigo-100 text-indigo-700'
   if (s === 'send_to_approve') return 'bg-indigo-100 text-indigo-700'
   if (s === 'sent') return 'bg-blue-100 text-blue-700'
   if (s === 'send_to_purchasing') return 'bg-blue-100 text-blue-700'
   if (s === 'pending') return 'bg-amber-100 text-amber-700'
   if (s === 'cancelled') return 'bg-rose-100 text-rose-700'
+  if (s === 'rejected') return 'bg-rose-100 text-rose-700'
   return 'bg-slate-100 text-slate-700'
 }
 
@@ -185,29 +244,59 @@ onBeforeUnmount(()=>{ if (io) io.disconnect(); io = null })
         <thead class="bg-gray-50">
         <tr>
           <th class="px-4 py-3 text-left">Համար</th>
-          <th class="px-4 py-3 text-left">Մատակարար</th>
+          <th class="px-4 py-3 text-left">Գործընկեր</th>
           <th class="px-4 py-3 text-left">Ստեղծող</th>
           <th class="px-4 py-3 text-left">Կարգավիճակ</th>
-          <th class="px-4 py-3 text-right w-[1%]">Թարմացվել է</th>
-          <th class="px-4 py-3 text-right w-[1%]"></th>
+          <th class="px-4 py-3 text-right">Թարմացվել է</th>
+          <th class="px-4 py-3 text-right"></th>
         </tr>
         </thead>
         <tbody>
-        <tr v-for="o in rows" :key="o.id" class="border-b">
+        <tr v-for="o in rows" :key="o.id" class="border-t">
           <td class="px-4 py-2">{{ o.identification_number || o.number || ('#' + o.id) }}</td>
-          <td class="px-4 py-2">{{ o.partner?.name || '—' }}</td>
+          <td class="px-4 py-2">
+            <span class="flex flex-col gap-y-2">
+                <span class="font-bold">{{ o.partner_contract?.partner?.name || '—' }}</span>
+                <span>{{ o.partner_contract?.identification_number ? 'Պայմանագիր №'+o.partner_contract?.identification_number : '—' }}</span>
+            </span>
+
+          </td>
           <td class="px-4 py-2">{{ o.creator?.name || '—' }}</td>
           <td class="px-4 py-2">
             <span class="px-2 py-0.5 rounded text-xs" :class="statusClass(o.status)">{{ statusLabel(o.status) }}</span>
           </td>
-          <td class="px-4 py-3">
+          <td class="px-4 py-3 text-right">
             <span :title="o.updated_at">{{ formatDateTime(o.updated_at) }}</span>
             <span class="text-xs text-gray-400 ml-2">({{ fromNow(o.updated_at) }})</span>
           </td>
           <td class="px-4 py-2">
             <div class="flex items-center gap-2 justify-end">
-              <RouterLink :to="'/suppliers/orders/' + o.id" class="px-3 py-1 rounded border text-xs hover:bg-gray-50">Դիտել</RouterLink>
-
+              <RouterLink :to="'/suppliers/orders/' + o.id"
+                          class="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
+              >Դիտել</RouterLink>
+<!--              <button-->
+<!--                  v-if="canStop(o)"-->
+<!--                  class="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"-->
+<!--                  @click="onStop(o)"-->
+<!--              >-->
+<!--                Կանգնեցնել-->
+<!--              </button>-->
+              <button
+                  v-if="canFinish(o)"
+                  class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 disabled:opacity-50"
+                  :disabled="submittingId===o.id"
+                  @click="onFinish(o)"
+              >
+                Ավարտել
+              </button>
+              <button
+                  v-if="canDecline(o)"
+                  class="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"
+                  :disabled="submittingId===o.id"
+                  @click="onDecline(o)"
+              >
+                Մերժել
+              </button>
               <button
                   v-if="canSendToApprove(o)"
                   class="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"

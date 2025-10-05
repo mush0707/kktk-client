@@ -19,8 +19,8 @@
 
       <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
         <div>
-          <div class="text-slate-500">Մատակարար</div>
-          <div class="font-medium">{{ order?.partner?.name || '—' }}</div>
+          <div class="text-slate-500">Գործընկեր</div>
+          <div class="font-medium">{{ order?.partner_contract?.partner?.name || '—' }}</div>
         </div>
         <div>
           <div class="text-slate-500">Ստեղծող</div>
@@ -253,7 +253,7 @@ function rowStatusClass(s?: string) {
 function canCancelRow(r: any) {
   const os = String(order.value?.status || '')
   const rs = String(r?.status || '')
-  const orderLocked = ['done', 'cancelled'].includes(os)
+  const orderLocked = ['done', 'active', 'cancelled'].includes(os)
   return !orderLocked && rs !== 'cancelled'
 }
 

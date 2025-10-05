@@ -333,5 +333,9 @@
   "all_types": "Բոլոր տեսակները",
   "manager": "Մենեջեր",
   "contracts": "Պայմանագրեր",
-  "empty": "Դատարկ"
+  "empty": "Դատարկ",
+  "send_to_purchasing": "Ուղ․ մատակարարին",
+  "announce_tender": "Հայտարարված է տենդեր",
+  "archived": "Արխիվացված",
+  "part_of_order": "Պատվերի մաս"
 }

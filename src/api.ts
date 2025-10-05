@@ -174,6 +174,17 @@ export const purchasingApi = {
     }).then(r => r.data),
 
 }
+export const storagesApi = {
+    getMatchedStoragePointsByProductTypeId: (productTypeId) => api.get('/storages/list-by-product-type/'+productTypeId).then(r => r.data),
+
+}
+export const applicationMovementsApi = {
+    activeProductList: (params) => api.get('/suppliers/orders/movements/active-products', {params}).then(r => r.data),
+    async create(payload) {
+        const {data} = await api.post("/suppliers/orders/movements", payload);
+        return data;
+    },
+}
 export const purchasingPartnerApi = {
     list: (params) => api.get('/purchasing/partners', {params}).then(r => r.data),
     get: (id) => api.get('/purchasing/partners/'+id).then(r => r.data),
@@ -191,35 +202,79 @@ export const purchasingPartnerApi = {
 }
 
 export const purchasingOrdersApi = {
-    // VIEW
+    // view
     list(params) {
-        return api.get('/orders', { params })
+        return api.get('/purchasing/orders', { params })
     },
     getById(id) {
-        return api.get(`/orders/${id}`)
+        return api.get(`/purchasing/orders/${id}`)
+    },
+    getOrderContract(orderId, contractId, withTrashed = false) {
+        return api.get(`/purchasing/orders/${orderId}/contracts/${contractId}`, {
+            params: {
+                with_trashed: withTrashed
+            }
+        })
+    },
+    cancelOrderContract(orderId, contractId) {
+        return api.delete(`/purchasing/orders/${orderId}/contracts/${contractId}`)
+    },
+    archiveContractDocument(orderId, contractId, docId) {
+        return api.patch(`/purchasing/orders/${orderId}/contracts/${contractId}/documents/${docId}`)
+    },
+    getContractDocTypes(orderId) {
+        // Controller-ում կա getContractDocTypes($id) — ենթադրում ենք այս ուղին
+        return api.get(`/purchasing/orders/${orderId}/contracts/doc-types`)
     },
 
-    // MANAGE
+    // manage
     storeMaxPrices(id, payload) {
-        // payload: { advance_payment_percentage, product_prices:[{order_product_id,price}], offering_prices:[{order_offering_id,price}] }
-        return api.post(`/orders/${id}/max-prices`, payload)
+        // { advance_payment_percentage, product_prices:[{order_product_id,price}], offering_prices:[{order_offering_id,price}] }
+        return api.post(`/purchasing/orders/${id}/max-prices`, payload)
+    },
+    storeFinalPrices(id, payload) {
+        // նույն DTO, բայց պահվում է որպես վերջնական (price)
+        return api.post(`/purchasing/orders/${id}/prices`, payload)
     },
     announceTender(id) {
-        return api.patch(`/orders/${id}`)
+        return api.patch(`/purchasing/orders/${id}/announce-tender`)
     },
     reject(id) {
-        return api.delete(`/orders/${id}`)
+        return api.delete(`/purchasing/orders/${id}`)
     },
     rejectProduct(id, productId) {
-        return api.delete(`/orders/${id}/products/${productId}`)
+        return api.delete(`/purchasing/orders/${id}/products/${productId}`)
     },
     rejectOffering(id, offeringId) {
-        return api.delete(`/orders/${id}/offerings/${offeringId}`)
+        return api.delete(`/purchasing/orders/${id}/offerings/${productId}`)
     },
-    activate(id, payload) {
-        // payload: same DTO, backend interprets as 'price'
-        return api.post(`/orders/${id}/activate`, payload)
-    }
+    // ուղղում՝ offeringId
+    rejectOffering(orderId, offeringId) {
+        return api.delete(`/purchasing/orders/${orderId}/offerings/${offeringId}`)
+    },
+
+    // contracts
+    storeContract(orderId, formData /* multipart */) {
+        // formData: partner_id, start_date, finished_date, documents[0][type_id], documents[0][documents]...
+        return api.post(`/purchasing/orders/${orderId}/contracts`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+    },
+    updateContractDocument(orderId, contractId, formData /* multipart */) {
+        // formData: type_id, documents[]
+        return api.post(`/purchasing/orders/${orderId}/contracts/${contractId}/documents`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+    },
+    getActiveOrderDocTypes() {
+        return api.get('/purchasing/active-orders/doc-types')
+    },
+    activate(orderId, formData) {
+        // ենթադրում ենք POST multipart
+        return api.post(`/purchasing/orders/${orderId}/activate`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+    },
 }
 
 export const ordersApi = {

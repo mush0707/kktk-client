@@ -5,9 +5,9 @@
     <div v-if="isEdit" class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b">
         <div class="flex items-center gap-2">
-          <div class="text-lg font-semibold">Խմբագրել հայտ № {{ identification_number }}</div>
+          <div class="text-lg font-semibold">Դիտել / Խմբագրել հայտ № {{ identification_number }}</div>
           <span v-if="headerStatusLabel" class="px-2 py-0.5 rounded text-xs bg-gray-100 text-gray-700">
-            {{ headerStatusLabel }}
+            {{ $t(headerStatusLabel) }}
           </span>
         </div>
         <div class="flex items-center gap-2">
@@ -15,14 +15,35 @@
         </div>
       </div>
     </div>
+    <nav v-if="isEdit" class="flex bg-blue-50 py-2 items-center text-sm" aria-label="Breadcrumb">
+      <ol class="inline-flex items-center">
 
+        <li>
+          <router-link :to="'/suppliers/applications'"
+                       class="inline-flex items-center gap-1 rounded-md px-2 py-1 hover:bg-slate-100">
+            <span class="underline-offset-2 hover:underline">{{ $t('suppliers_applications') }}</span>
+          </router-link>
+        </li>
+        <li aria-hidden="true" class="px-1">
+          <svg class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
+            <path
+                d="M7.05 3.55a1 1 0 0 1 1.4 0l4.5 4.5a1 1 0 0 1 0 1.4l-4.5 4.5a1 1 0 0 1-1.4-1.4L10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
+          </svg>
+        </li>
+        <li>
+          <p class="inline-flex items-center gap-1 rounded-md px-2 py-1">
+            <span class="underline-offset-2 hover:underline">{{ identification_number }}</span>
+          </p>
+        </li>
+      </ol>
+    </nav>
     <!-- Products -->
     <div class="bg-white border border-gray-200 rounded-2xl overflow-hidden">
       <div class="flex items-center justify-between p-4 border-b">
         <div class="flex flex-col gap-y-2">
           <div class="font-medium">Ապրանքներ</div>
-          <input
-              ref="prodSearchInput"
+          <input v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')"
+                 ref="prodSearchInput"
               v-model="prodSearch.query"
               @focus="openGlobalProductDd()"
               @input="onGlobalProductQuery(); openGlobalProductDd()"
@@ -30,7 +51,7 @@
               class="border border-gray-300 rounded-xl px-3 py-2 w-[360px]"
           />
         </div>
-        <div v-if="initialStatus !== 'send_to_supplier'" class="flex gap-2 items-center">
+        <div v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')"  class="flex gap-2 items-center">
           <button
               class="px-3 py-2 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 disabled:opacity-50"
               @click="openNewProductModal()"
@@ -81,29 +102,31 @@
           </td>
 
           <td class="px-4 py-2 text-right">
-            <input
+            <input v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')"
                 type="number"
                 min="0"
                 step="0.001"
                 v-model.number="it.qty"
                 class="border border-gray-300 rounded-xl px-3 py-2 w-40 text-right"
             />
+            <p v-else>{{ it.qty }}</p>
           </td>
 
           <td class="px-4 py-2 text-right">
-            <select v-model="it.measure" class="border border-gray-300 rounded-xl px-3 py-2 w-40">
+            <select v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')" v-model="it.measure" class="border border-gray-300 rounded-xl px-3 py-2 w-40">
               <option v-for="u in measureUnitsFor(it.product)" :key="u" :value="u">{{ $t(u) }}</option>
             </select>
+            <p v-else>{{ $t(it.measure ?? 'piece') }}</p>
           </td>
 
           <!-- Periodicity controls -->
           <td class="px-4 py-2">
-            <label class="inline-flex items-center gap-2 text-xs text-slate-700">
+            <label v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')" class="inline-flex items-center gap-2 text-xs text-slate-700">
               <input type="checkbox" v-model="it.periodicity.recurring" />
               Պարբերական
             </label>
-            <div class="flex flex-wrap items-center gap-2">
-
+            <p v-else>{{ it.periodicity.recurring ? 'Պարբերական' : 'Մեկ անգամյա' }}</p>
+            <div v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')" class="flex flex-wrap items-center gap-2">
               <template v-if="it.periodicity.recurring">
                 <span class="text-xs text-slate-500">Յուրաքանչյուր</span>
                 <input type="number" step="0.1" min="0.1"
@@ -122,6 +145,17 @@
                        v-model.number="it.periodicity.recurring_deadline_month_qty" />
                 <span class="text-xs text-slate-500">ամիս</span>
               </template>
+            </div>
+            <div v-else-if="it.periodicity.recurring" class="flex flex-wrap gap-2">
+              <span class="text-xs text-slate-500">Յուրաքանչյուր</span>
+              <span>{{ it.periodicity.recurring_per_month_qty }}</span>
+              <span class="text-xs text-slate-500">ամիսը</span>
+              <span>{{ it.periodicity.recurring_qty }}</span>
+              <span class="text-xs text-slate-500">անգամ</span>
+
+              <span class="text-xs text-slate-500">մինչև</span>
+              <span>{{ it.periodicity.recurring_deadline_month_qty }}</span>
+              <span class="text-xs text-slate-500">ամիս</span>
             </div>
             <p v-if="it.periodicity.recurring && !validPeriodicity(it.periodicity)"
                class="mt-1 text-[11px] text-rose-600">
@@ -181,7 +215,7 @@
       <div class="flex items-center justify-between p-4 border-b">
         <div class="flex flex-col gap-y-2">
           <div class="font-medium">Աշխատանք / Ծառայություն</div>
-          <input
+          <input v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')"
               ref="offSearchInput"
               v-model="offSearch.query"
               @focus="openOffDd()"
@@ -190,7 +224,7 @@
               class="border border-gray-300 rounded-xl px-3 py-2 w-[360px]"
           />
         </div>
-        <div v-if="initialStatus !== 'send_to_supplier'" class="flex items-center gap-2">
+        <div v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')" class="flex items-center gap-2">
           <button
               class="px-3 py-2 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
               @click="openNewOfferingModal"
@@ -244,23 +278,24 @@
             </div>
           </td>
           <td class="px-4 py-2 text-right">
-            <input
+            <input v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')"
                 type="number"
                 min="1"
                 step="1"
                 v-model.number="it.qty"
                 class="border border-gray-300 rounded-xl px-3 py-2 w-24 text-right"
             />
+            <p v-else>{{ it.qty }}</p>
           </td>
 
           <!-- Periodicity controls -->
           <td class="px-4 py-2">
-            <label class="inline-flex items-center gap-2 text-xs text-slate-700">
+            <label v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')" class="inline-flex items-center gap-2 text-xs text-slate-700">
               <input type="checkbox" v-model="it.periodicity.recurring" />
               Պարբերական
             </label>
-            <div class="flex flex-wrap items-center gap-2">
-
+            <p v-else>{{ it.periodicity.recurring ? 'Պարբերական' : 'Մի անգամյա' }}</p>
+            <div v-if="!isEdit || (initialStatus === 'pending' || initialStatus === 'send_to_approve')" class="flex flex-wrap items-center gap-2">
               <template v-if="it.periodicity.recurring">
                 <span class="text-xs text-slate-500">Յուրաքանչյուր</span>
                 <input type="number" step="0.1" min="0.1"
@@ -279,6 +314,17 @@
                        v-model.number="it.periodicity.recurring_deadline_month_qty" />
                 <span class="text-xs text-slate-500">ամիս</span>
               </template>
+            </div>
+            <div v-else-if="it.periodicity.recurring" class="flex flex-wrap gap-2">
+              <span class="text-xs text-slate-500">Յուրաքանչյուր</span>
+              <span>{{ it.periodicity.recurring_per_month_qty }}</span>
+              <span class="text-xs text-slate-500">ամիսը</span>
+              <span>{{ it.periodicity.recurring_qty }}</span>
+              <span class="text-xs text-slate-500">անգամ</span>
+
+              <span class="text-xs text-slate-500">մինչև</span>
+              <span>{{ it.periodicity.recurring_deadline_month_qty }}</span>
+              <span class="text-xs text-slate-500">ամիս</span>
             </div>
             <p v-if="it.periodicity.recurring && !validPeriodicity(it.periodicity)"
                class="mt-1 text-[11px] text-rose-600">
@@ -476,6 +522,7 @@ const ITEM_STATUS_LABELS: Record<string, string> = {
   cancelled: 'Չեղարկված',
   rejected: 'Մերժված',
   written_off: 'Դուրս գրված',
+  part_of_order: 'Պատվերի մաս'
 }
 
 function itemStatusLabel(s?: string) {
@@ -485,6 +532,7 @@ function itemStatusLabel(s?: string) {
 
 function itemStatusClass(s?: string) {
   const v = String(s || '').toLowerCase()
+  if (v === 'part_of_order') return 'bg-emerald-100 text-emerald-700'
   if (v === 'approved') return 'bg-emerald-100 text-emerald-700'
   if (v === 'rejected') return 'bg-amber-100 text-amber-700'
   if (v === 'cancelled') return 'bg-rose-100 text-rose-700'
