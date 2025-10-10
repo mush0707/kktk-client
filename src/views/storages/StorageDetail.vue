@@ -34,6 +34,10 @@
     </div>
     <div class="px-4">
       <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <RouterLink :to="'/storages/'+storage?.id+'/entries'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
+          <p class="font-semibold">Մուտքեր</p>
+          <!--          <p class="text-sm text-gray-500">storage_products · նոր արտադրված ապրանք</p>-->
+        </RouterLink>
         <RouterLink :to="'/storages/'+storage?.id+'/staging'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
           <p class="font-semibold">Ժամանակավոր պահեստ</p>
 <!--          <p class="text-sm text-gray-500">storage_products · նոր արտադրված ապրանք</p>-->

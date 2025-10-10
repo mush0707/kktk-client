@@ -3,8 +3,6 @@
     <!-- send_to_purchasing → max prices -->
     <div class="flex items-center justify-between bg-white border border-gray-300 p-4 rounded-xl">
       <div class="flex items-center gap-6">
-        <!-- Advance is hidden for now (kept as state in script) -->
-
         <div v-if="isSend" class="flex flex-col gap-y-1">
           <label class="text-sm text-gray-600">Ընդհանուր ամիսների քանակը</label>
           <input
@@ -14,9 +12,7 @@
               class="w-40 px-3 py-2 rounded-xl border border-gray-300"
               :title="'Օգտագործվում է ոչ պարբերական աշխատանքների/ծառայությունների փուլերի կանխադրման համար'"
           />
-          <div class="text-xs text-slate-500 mt-1">
-            Մին․՝ {{ minTotalMonths }}
-          </div>
+          <div class="text-xs text-slate-500 mt-1">Մին․՝ {{ minTotalMonths }}</div>
         </div>
         <div v-else>
           <label class="text-sm text-gray-600">Ընդհանուր ամիսների քանակը</label>
@@ -36,9 +32,7 @@
 
     <!-- announce_tender → final prices + activate hint -->
     <div v-if="isAnnounce" class="flex items-center justify-between bg-indigo-50 border border-gray-300 rounded-xl p-4">
-      <div class="text-sm">
-        Մուտքագրիր վերջնական (գնման) գները բոլոր տողերի համար։
-      </div>
+      <div class="text-sm">Մուտքագրիր վերջնական (գնման) գները բոլոր տողերի համար։</div>
       <button
           class="px-3 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
           :disabled="saving || !canSaveFinal"
@@ -49,22 +43,20 @@
     </div>
 
     <!-- GROUPING -->
-    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+    <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 space-y-3">
       <div class="font-medium">Փուլերի խմբավորում</div>
       <div class="flex flex-wrap gap-2">
         <div v-for="b in phaseBuckets" :key="b.key + '-details'">
-          <div class="rounded-lg border border-amber-200 bg-amber-50/40">
+          <div class="rounded-lg border border-indigo-200 bg-amber-50/40">
             <!-- bucket header + tools -->
-            <p class="px-2 py-2">
-              {{ bucketLabel(b) }}
-            </p>
-            <div class="flex items-center gap-2 px-3 py-2 border-b border-amber-200/70">
+            <p class="px-2 py-2">{{ bucketLabel(b) }}</p>
+            <div class="flex items-center gap-2 px-3 py-2 border-b border-indigo-200/70">
               <div class="flex flex-col">
-                <label class="inline-flex items-center gap-2 font-medium text-amber-800">
+                <label class="inline-flex items-center gap-2 font-medium text-indigo-800">
                   <input
                       type="checkbox"
                       :checked="selectedBucketKeys.has(b.key)"
-                      :disabled="disabledBuckets.has(b.key)"
+                      :disabled="isAnnounce || disabledBuckets.has(b.key)"
                       @change="toggleBucket(b.key)"
                   />
                 </label>
@@ -73,13 +65,13 @@
               <div class="flex items-center gap-2 text-[12px]">
                 <button
                     class="px-2 py-1 rounded border border-amber-300 hover:bg-amber-100 disabled:opacity-50"
-                    :disabled="disabledBuckets.has(b.key)"
+                    :disabled="isAnnounce || disabledBuckets.has(b.key)"
                     @click="selectAllInBucket(b)"
                     :title="`Նշել բոլորը · ${bucketLabel(b)}`"
                 >Նշել բոլորը</button>
                 <button
                     class="px-2 py-1 rounded border border-amber-300 hover:bg-amber-100 disabled:opacity-50"
-                    :disabled="disabledBuckets.has(b.key)"
+                    :disabled="isAnnounce || disabledBuckets.has(b.key)"
                     @click="deselectAllInBucket(b)"
                     :title="`Հանել բոլորը · ${bucketLabel(b)}`"
                 >Հանել բոլորը</button>
@@ -97,7 +89,7 @@
                     type="checkbox"
                     class="mr-1"
                     :checked="isRowSelected(b.key, it)"
-                    :disabled="disabledBuckets.has(b.key) && b.items.length===1"
+                    :disabled="isAnnounce || (disabledBuckets.has(b.key) && b.items.length===1)"
                     @change="toggleRowInBucket(b.key, it, ($event.target as HTMLInputElement).checked)"
                 />
                 <span>
@@ -280,7 +272,7 @@
           <td class="px-3 py-2 text-right">{{ formatNumber(o.qty) }}</td>
           <td class="px-3 py-2 text-right">{{ periodicityLabel(o) }}</td>
 
-          <!-- View mode (announce): show max + phases button -->
+          <!-- View mode (announce) -->
           <td class="px-4 py-2 text-right" v-if="isAnnounce">
             <div class="flex flex-col gap-y-2">
               <p>{{ o.maximum_price ?? 0 }}</p>
@@ -304,7 +296,7 @@
             </div>
           </td>
 
-          <!-- Send mode: max inputs + phases button -->
+          <!-- Send mode -->
           <td class="px-4 py-2 align-top" v-if="isSend">
             <div class="flex justify-end">
               <div class="flex flex-col gap-y-2">
@@ -505,12 +497,14 @@ type ManualPhase = {
   duration_unit: 'months' | 'days'
   percent: number
   duration_in_contract_end: boolean
+  group?: number | null
 }
-type PhaseWindow = { start: number | null; end: number } // start=null means “ignore start”
+type PhaseWindow = { start: number | null; end: number }
 type PhaseAtom = {
   rowId: number
   kind: 'product' | 'offering'
   label: string
+  phaseName: string
   window: PhaseWindow
 }
 
@@ -532,7 +526,7 @@ const offeringsShown = computed(() => {
 const isSend = computed(() => props.order?.status === 'send_to_purchasing')
 const isAnnounce = computed(() => props.order?.status === 'announce_tender')
 
-/* Top-level state (mapped) */
+/* Top-level state */
 const advance = ref<number>(0)
 const totalMonths = ref<number>(1)
 const saving = ref(false)
@@ -569,7 +563,13 @@ const phasesModal = ref<{
   manualRows: [],
 })
 
-/* ---- Helpers: periodicity & formatting ---- */
+/* Grouping UI state */
+const disabledBuckets = ref<Set<string>>(new Set())
+const selectedBucketKeys = ref<Set<string>>(new Set())
+const selectedRowsByBucket = ref<Record<string, Set<string>>>({})
+const seededFromBackend = ref(false) // run seeding once
+
+/* ---- Helpers ---- */
 function formatNumber(
     value: any,
     { maximumFractionDigits = 6, minimumFractionDigits = 0, locale = 'en-US' } = {}
@@ -590,7 +590,7 @@ function periodicityLabel(r: AnyRow): string {
 function isRecurringVal(v: any): boolean { return v === true || v === 1 || v === '1' }
 function isRecurringRow(r: AnyRow): boolean { return isRecurringVal(r?.recurring) }
 
-/** Build phase windows for a single row according to the rules. */
+/** Build phase windows for a row */
 function buildWindowsForRow(kind: 'product'|'offering', row: AnyRow): PhaseAtom[] {
   const id = Number(row.id)
   const atoms: PhaseAtom[] = []
@@ -599,28 +599,32 @@ function buildWindowsForRow(kind: 'product'|'offering', row: AnyRow): PhaseAtom[
     const step = Math.max(1, Number(row?.recurring_per_month_qty || 0))
     const deadline = Math.max(step, Number(row?.recurring_deadline_month_qty || step))
     const count = Math.max(1, Math.floor(deadline / step))
+    const rowTitle = (kind === 'product' ? (row.product?.name || 'Ապրանք') : (row.offering?.name || 'Աշխ/Ծառ'))
+
     for (let i = 0; i < count; i++) {
       const start = i * step
       const end   = (i + 1) * step
       atoms.push({
         rowId: id,
         kind,
-        label: (kind === 'product' ? (row.product?.name || 'Ապրանք') : (row.offering?.name || 'Աշխ/Ծառ')),
+        label: rowTitle,
+        phaseName: `Փուլ ${i + 1}`,
         window: { start, end }
       })
     }
     return atoms
   }
 
-  // Non-recurring: take one stage from the *manual* bags (already applied/edited)
   const bag = (kind === 'product' ? productManualPhases.value[id] : offeringManualPhases.value[id]) || []
-  const phase = bag.length ? bag[0] : { duration_in_contract_end: true, duration_value: null }
+  const phase = bag.length ? bag[0] : { duration_in_contract_end: true, duration_value: null, name: 'Փուլ' }
+  const rowTitle = (kind === 'product' ? (row.product?.name || 'Ապրանք') : (row.offering?.name || 'Աշխ/Ծառ'))
 
   if (phase.duration_in_contract_end) {
     atoms.push({
       rowId: id,
       kind,
-      label: (kind === 'product' ? (row.product?.name || 'Ապրանք') : (row.offering?.name || 'Աշխ/Ծառ')),
+      label: rowTitle,
+      phaseName: String(phase.name || 'Փուլ'),
       window: { start: null, end: Number(totalMonths.value || 1) }
     })
   } else {
@@ -628,14 +632,15 @@ function buildWindowsForRow(kind: 'product'|'offering', row: AnyRow): PhaseAtom[
     atoms.push({
       rowId: id,
       kind,
-      label: (kind === 'product' ? (row.product?.name || 'Ապրանք') : (row.offering?.name || 'Աշխ/Ծառ')),
+      label: rowTitle,
+      phaseName: String(phase.name || 'Փուլ'),
       window: { start: 0, end: dur }
     })
   }
   return atoms
 }
 
-/** Collect all atoms from visible rows. */
+/** Collect atoms */
 const allPhaseAtoms = computed<PhaseAtom[]>(() => {
   const list: PhaseAtom[] = []
   for (const p of productsShown.value || []) list.push(...buildWindowsForRow('product', p))
@@ -643,13 +648,13 @@ const allPhaseAtoms = computed<PhaseAtom[]>(() => {
   return list
 })
 
-/** Grouping key: if end === totalMonths OR start is null → ignore start using `*` */
+/** Grouping key */
 function bucketKey(w: PhaseWindow, total: number): string {
   if (w.start == null || Number(w.end) === Number(total)) return `*-${Number(w.end)}`
   return `${Number(w.start)}-${Number(w.end)}`
 }
 
-/** Buckets built STRICTLY by the rules (can only group within these). */
+/** Buckets */
 const phaseBuckets = computed(() => {
   const t = Number(totalMonths.value || 1)
   const map = new Map<string, { key: string; start: number|null; end: number; items: PhaseAtom[] }>()
@@ -672,20 +677,28 @@ const phaseBuckets = computed(() => {
   })
 })
 
-/** User selections **/
-const disabledBuckets = ref<Set<string>>(new Set())
-const selectedBucketKeys = ref<Set<string>>(new Set())
-
-/** For each bucket key we store a Set of selected atom keys */
-const selectedRowsByBucket = ref<Record<string, Set<string>>>({})
-
+/** Keys/labels */
 function atomKey(a: PhaseAtom) {
   const s = a.window.start == null ? '*' : a.window.start
   return `${a.kind}:${a.rowId}:${s}-${a.window.end}`
 }
+function itemTitle(it: any) { return it.label }
+function phaseTitle(it: any) { return it?.phaseName ? String(it.phaseName) : '' }
 
-/** Toggle a bucket on/off. */
+/** Armenian bucket labels */
+function bucketLabel(b: { start: number|null; end: number }) {
+  const total = Number(totalMonths.value || 1)
+  const start = b.start == null ? 0 : Number(b.start)
+  const end = Number(b.end)
+  if (end === total || b.start == null) return 'մինչև համաձայնագրի ավարտը'
+  if (start === 0 && end === 1) return 'մինչև մեկ ամիս'
+  if (start === 0) return `մինչև ${end} ամիս`
+  return `համաձայնագիրը ստորագրելուց մինչև ${end} ամիս`
+}
+
+/** Bucket header toggle (guarded when announce) */
 function toggleBucket(key: string) {
+  if (isAnnounce.value) return
   const selected = new Set(selectedBucketKeys.value)
   if (selected.has(key)) {
     selected.delete(key)
@@ -702,8 +715,9 @@ function toggleBucket(key: string) {
   selectedBucketKeys.value = selected
 }
 
-/** Toggle a single row within a bucket (keeps bucket selection in sync) */
+/** Row toggle (guarded when announce) */
 function toggleRowInBucket(bucketKey: string, atom: PhaseAtom, checked: boolean) {
+  if (isAnnounce.value) return
   const m = { ...selectedRowsByBucket.value }
   const set = new Set(m[bucketKey] ?? [])
   const k = atomKey(atom)
@@ -711,49 +725,103 @@ function toggleRowInBucket(bucketKey: string, atom: PhaseAtom, checked: boolean)
   else set.delete(k)
   m[bucketKey] = set
   selectedRowsByBucket.value = m
-
-  // Keep bucket key set in sync with at-least-one-selected rule
-  if (set.size > 0) {
-    selectedBucketKeys.value.add(bucketKey)
-  } else {
-    selectedBucketKeys.value.delete(bucketKey)
-  }
+  if (set.size > 0) selectedBucketKeys.value.add(bucketKey)
+  else selectedBucketKeys.value.delete(bucketKey)
 }
-
-/** Is a row selected in this bucket? */
 function isRowSelected(bucketKey: string, atom: PhaseAtom) {
   const set = selectedRowsByBucket.value[bucketKey]
   return !!set && set.has(atomKey(atom))
 }
 
-/** Initialize defaults whenever buckets change */
+/** Map BE stage to expected atom key */
+function atomKeyFromBackendStage(
+    kind: 'product' | 'offering',
+    row: AnyRow,
+    stage: any,
+    index: number
+): string {
+  if (isRecurringRow(row)) {
+    const step = Number(row?.recurring_per_month_qty || 1) || 1
+    const start = index * step
+    const end = start + step
+    return atomKey({ kind, rowId: Number(row.id), window: { start, end } } as any)
+  } else {
+    const end = stage?.months_qty == null ? Number(totalMonths.value || 1) : Number(stage.months_qty)
+    const start = stage?.months_qty == null ? null : 0
+    return atomKey({ kind, rowId: Number(row.id), window: { start, end } } as any)
+  }
+}
+
+/** Watch buckets: singleton behavior + seed once from BE groups */
 watch(
     phaseBuckets,
     (buckets) => {
       const nextDisabled = new Set<string>()
-      const nextSelected = new Set<string>()
-      const rowsMap: Record<string, Set<string>> = {}
+      const nextSelectedBucketKeys = new Set<string>(selectedBucketKeys.value)
+      const rowsMap: Record<string, Set<string>> = { ...selectedRowsByBucket.value }
 
+      // one-time seeding from GET
+      if (!seededFromBackend.value && (props.order?.products?.length || props.order?.offerings?.length)) {
+        const selectedAtomKeys = new Set<string>()
+
+        for (const p of (props.order?.products || [])) {
+          const stages = Array.isArray(p.stages) ? p.stages : []
+          stages.forEach((st: any, i: number) => {
+            if (st?.group == null) return
+            selectedAtomKeys.add(atomKeyFromBackendStage('product', p, st, i))
+          })
+        }
+        for (const o of (props.order?.offerings || [])) {
+          const stages = Array.isArray(o.stages) ? o.stages : []
+          stages.forEach((st: any, i: number) => {
+            if (st?.group == null) return
+            selectedAtomKeys.add(atomKeyFromBackendStage('offering', o, st, i))
+          })
+        }
+
+        for (const b of buckets) {
+          const set = new Set<string>(rowsMap[b.key] ?? [])
+          for (const a of b.items) {
+            const k = atomKey(a)
+            if (selectedAtomKeys.has(k)) set.add(k)
+          }
+          if (set.size > 0) {
+            rowsMap[b.key] = set
+            nextSelectedBucketKeys.add(b.key)
+          }
+        }
+        seededFromBackend.value = true
+      }
+
+      // enforce singleton buckets
       for (const b of buckets) {
         if (b.items.length === 1) {
-          // singleton → auto select & lock
           nextDisabled.add(b.key)
-          nextSelected.add(b.key)
           rowsMap[b.key] = new Set(b.items.map(atomKey))
+          nextSelectedBucketKeys.add(b.key)
         } else {
-          // multi → start unselected with empty set
-          rowsMap[b.key] = new Set()
+          rowsMap[b.key] = rowsMap[b.key] ?? new Set<string>()
+          if (rowsMap[b.key].size > 0) nextSelectedBucketKeys.add(b.key)
+          else nextSelectedBucketKeys.delete(b.key)
+        }
+      }
+
+      // cleanup removed buckets
+      for (const k of Object.keys(rowsMap)) {
+        if (!buckets.find(x => x.key === k)) {
+          delete rowsMap[k]
+          nextSelectedBucketKeys.delete(k)
         }
       }
 
       disabledBuckets.value = nextDisabled
-      selectedBucketKeys.value = nextSelected
       selectedRowsByBucket.value = rowsMap
+      selectedBucketKeys.value = nextSelectedBucketKeys
     },
     { deep: true, immediate: true }
 )
 
-/** Chosen groups reflect per-row selections (any item -> include bucket) */
+/** Chosen groups */
 const chosenGroups = computed(() =>
     phaseBuckets.value
         .map(b => {
@@ -764,12 +832,6 @@ const chosenGroups = computed(() =>
         .filter(g => g.items.length > 0)
 )
 
-/** Helper: human label for a bucket. */
-function bucketLabel(b: { start: number|null; end: number }) {
-  if (b.start == null) return `… → ${b.end} ամիս (մինչև համաձայնագրի ավարտ)`
-  return `${b.start} → ${b.end} ամիս`
-}
-
 /* ---- mapping helpers from backend STAGES -> front phases ---- */
 function mapStagesToManual(stages: any[]): ManualPhase[] {
   return (stages || []).map((s: any) => ({
@@ -778,6 +840,7 @@ function mapStagesToManual(stages: any[]): ManualPhase[] {
     duration_unit: 'months',
     percent: Number(s?.percentage ?? 0),
     duration_in_contract_end: s?.months_qty == null,
+    group: s?.group ?? null,
   }))
 }
 function mapStagesToPercents(stages: any[]): number[] {
@@ -847,24 +910,18 @@ const minTotalMonths = computed(() => {
   const manualDurations: number[] = []
   Object.values(productManualPhases.value || {}).forEach(rows => {
     (rows || []).forEach(r => {
-      if (!r.duration_in_contract_end && r.duration_value) {
-        manualDurations.push(Number(r.duration_value) || 0)
-      }
+      if (!r.duration_in_contract_end && r.duration_value) manualDurations.push(Number(r.duration_value) || 0)
     })
   })
   Object.values(offeringManualPhases.value || {}).forEach(rows => {
     (rows || []).forEach(r => {
-      if (!r.duration_in_contract_end && r.duration_value) {
-        manualDurations.push(Number(r.duration_value) || 0)
-      }
+      if (!r.duration_in_contract_end && r.duration_value) manualDurations.push(Number(r.duration_value) || 0)
     })
   })
 
   if (phasesModal.value.open && phasesModal.value.mode === 'manual') {
     (phasesModal.value.manualRows || []).forEach(r => {
-      if (!r.duration_in_contract_end && r.duration_value) {
-        manualDurations.push(Number(r.duration_value) || 0)
-      }
+      if (!r.duration_in_contract_end && r.duration_value) manualDurations.push(Number(r.duration_value) || 0)
     })
   }
 
@@ -881,7 +938,7 @@ watch(minTotalMonths, (m) => {
   }))
 })
 
-/* ---- init / defaults with MAPPING from backend -> front ---- */
+/* ---- init / defaults (backend → front mapping) ---- */
 watchEffect(() => {
   if (!props.order) return
 
@@ -901,7 +958,13 @@ watchEffect(() => {
   offeringRecurringPhases.value = {}
   offeringManualPhases.value = {}
 
-  // products (backend → front mapping)
+  // clear grouping selections (seed later in watcher)
+  selectedRowsByBucket.value = {}
+  selectedBucketKeys.value = new Set()
+  disabledBuckets.value = new Set()
+  seededFromBackend.value = false
+
+  // products
   for (const p of props.order.products || []) {
     const id = Number(p.id)
     productMax.value[id] = Number(p.maximum_price ?? 0)
@@ -926,7 +989,7 @@ watchEffect(() => {
     }
   }
 
-  // offerings (backend → front mapping)
+  // offerings
   for (const o of props.order.offerings || []) {
     const id = Number(o.id)
     offeringMax.value[id] = Number(o.maximum_price ?? 0)
@@ -1021,7 +1084,7 @@ const applyDisabled = computed(() => {
   return sumManualPercents.value > 100 || anyInvalid
 })
 
-/* ===== openPhases (SINGLE definition) ===== */
+/* ===== openPhases ===== */
 function openPhases(kind: 'product' | 'offering', row: AnyRow) {
   const id = Number(row.id)
 
@@ -1137,7 +1200,7 @@ function normalizeStages(
   })
 }
 
-/* ---- Save actions (keep old code, just post-map the payload) ---- */
+/* ---- Save actions ---- */
 function makeRecurringPhasesFromPercents(row: AnyRow, percents: number[]): ManualPhase[] {
   const stepMonths = Number(row?.recurring_per_month_qty || 0) || 1
   return percents.map((p, i) => ({
@@ -1183,28 +1246,17 @@ function stageAtomKeyForOffering(o: AnyRow, stage: any, index: number): string {
     return atomKey({ kind: 'offering', rowId: Number(o.id), window: { start, end } } as any)
   }
 }
-function itemTitle(it: any) { return it.label }
-function windowLabel(win: { start: number | null; end: number | null }) {
-  const total = Number(totalMonths.value || 1)
-  const start = win?.start == null ? 0 : Number(win.start)
-  const end = win?.end == null ? null : Number(win.end)
-  if (end !== null && end === total) return 'մինչև համաձայնագրի ավարտը'
-  if (start === 0) return 'մինչև '+end+' ամիս'
-  if (end !== null) return `համաձայնագիրը ստորագրելուց մինչև ${end} ամիս`
-  return 'Մինչեվ'
-}
-function bucketDisplayName(b: any) { return `${windowLabel(b.window)} — ${b.items?.length || 0} փուլ` }
-function phaseTitle(it: any) { return it?.label ? String(it.label) : '' }
 
-/* ===== Bulk select helpers per bucket ===== */
+/* ===== Bulk select helpers per bucket (guarded when announce) ===== */
 function selectAllInBucket(b: any) {
+  if (isAnnounce.value) return
   const s = new Set(selectedRowsByBucket.value[b.key] ?? [])
   for (const it of b.items) s.add(atomKey(it))
   selectedRowsByBucket.value = { ...selectedRowsByBucket.value, [b.key]: s }
   if (s.size > 0) selectedBucketKeys.value.add(b.key)
 }
-
 function deselectAllInBucket(b: any) {
+  if (isAnnounce.value) return
   if (disabledBuckets.value.has(b.key) && b.items.length === 1) return
   selectedRowsByBucket.value = { ...selectedRowsByBucket.value, [b.key]: new Set() }
   selectedBucketKeys.value.delete(b.key)

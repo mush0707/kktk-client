@@ -16,7 +16,7 @@
         <option value="send_to_supplier">Ուղ. մատակարարին</option>
         <option value="cancelled">Չեղարկված</option>
         <option value="rejected_from_supplier">Մերժվել է մատակարարից</option>
-        <option value="part_of_order">Մաս է պատվերից</option>
+        <option value="part_of_order">Գնման պատվերի առարկա</option>
       </select>
     </div>
 
@@ -142,7 +142,7 @@ function statusLabel(s:string){
     send_to_supplier:'Ուղ. մատակարարին',
     cancelled:'Չեղարկված',
     rejected_from_supplier:'Մերժվել է մատակարարից',
-    part_of_order:'Մաս է պատվերից',
+    part_of_order:'Գնման պատվերի առարկա',
     send_to_purchasing:'Ուղ. գնման',
     rejected_from_purchasing:'Մերժվել է գնման բաժնից',
     finished:'Ավարտված',

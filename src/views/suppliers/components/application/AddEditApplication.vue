@@ -132,12 +132,12 @@
                 <input type="number" step="0.1" min="0.1"
                        class="w-20 px-2 py-1 border rounded"
                        v-model.number="it.periodicity.recurring_per_month_qty" />
-                <span class="text-xs text-slate-500">ամիսը</span>
+                <span class="text-xs text-slate-500">ամիսը`</span>
 
-                <input type="number" step="0.1" min="0.1"
-                       class="w-20 px-2 py-1 border rounded"
-                       v-model.number="it.periodicity.recurring_qty" />
-                <span class="text-xs text-slate-500">անգամ</span>
+<!--                <input type="number" step="0.1" min="0.1"-->
+<!--                       class="w-20 px-2 py-1 border rounded"-->
+<!--                       v-model.number="it.periodicity.recurring_qty" />-->
+<!--                <span class="text-xs text-slate-500">անգամ</span>-->
 
                 <span class="text-xs text-slate-500">մինչև</span>
                 <input type="number" step="0.1" min="0.1"
@@ -149,9 +149,9 @@
             <div v-else-if="it.periodicity.recurring" class="flex flex-wrap gap-2">
               <span class="text-xs text-slate-500">Յուրաքանչյուր</span>
               <span>{{ it.periodicity.recurring_per_month_qty }}</span>
-              <span class="text-xs text-slate-500">ամիսը</span>
-              <span>{{ it.periodicity.recurring_qty }}</span>
-              <span class="text-xs text-slate-500">անգամ</span>
+              <span class="text-xs text-slate-500">ամիսը`</span>
+<!--              <span>{{ it.periodicity.recurring_qty }}</span>-->
+<!--              <span class="text-xs text-slate-500">անգամ</span>-->
 
               <span class="text-xs text-slate-500">մինչև</span>
               <span>{{ it.periodicity.recurring_deadline_month_qty }}</span>
@@ -301,12 +301,12 @@
                 <input type="number" step="0.1" min="0.1"
                        class="w-20 px-2 py-1 border rounded"
                        v-model.number="it.periodicity.recurring_per_month_qty" />
-                <span class="text-xs text-slate-500">ամիսը</span>
+                <span class="text-xs text-slate-500">ամիսը`</span>
 
-                <input type="number" step="0.1" min="0.1"
-                       class="w-20 px-2 py-1 border rounded"
-                       v-model.number="it.periodicity.recurring_qty" />
-                <span class="text-xs text-slate-500">անգամ</span>
+<!--                <input type="number" step="0.1" min="0.1"-->
+<!--                       class="w-20 px-2 py-1 border rounded"-->
+<!--                       v-model.number="it.periodicity.recurring_qty" />-->
+<!--                <span class="text-xs text-slate-500">անգամ</span>-->
 
                 <span class="text-xs text-slate-500">մինչև</span>
                 <input type="number" step="0.1" min="0.1"
@@ -318,9 +318,9 @@
             <div v-else-if="it.periodicity.recurring" class="flex flex-wrap gap-2">
               <span class="text-xs text-slate-500">Յուրաքանչյուր</span>
               <span>{{ it.periodicity.recurring_per_month_qty }}</span>
-              <span class="text-xs text-slate-500">ամիսը</span>
-              <span>{{ it.periodicity.recurring_qty }}</span>
-              <span class="text-xs text-slate-500">անգամ</span>
+              <span class="text-xs text-slate-500">ամիսը`</span>
+<!--              <span>{{ it.periodicity.recurring_qty }}</span>-->
+<!--              <span class="text-xs text-slate-500">անգամ</span>-->
 
               <span class="text-xs text-slate-500">մինչև</span>
               <span>{{ it.periodicity.recurring_deadline_month_qty }}</span>
@@ -522,7 +522,7 @@ const ITEM_STATUS_LABELS: Record<string, string> = {
   cancelled: 'Չեղարկված',
   rejected: 'Մերժված',
   written_off: 'Դուրս գրված',
-  part_of_order: 'Պատվերի մաս'
+  part_of_order: 'Գնումների պատվերի առարկա'
 }
 
 function itemStatusLabel(s?: string) {
@@ -729,7 +729,8 @@ function mapPeriodicityFromApi(r: any): Periodicity {
   return {
     recurring: true,
     recurring_per_month_qty: Number.isFinite(every) && every > 0 ? every : 1,
-    recurring_qty: Number.isFinite(times) && times > 0 ? times : 1,
+    // recurring_qty: Number.isFinite(times) && times > 0 ? times : 1,
+    recurring_qty: 1,
     recurring_deadline_month_qty: Number.isFinite(deadline) && deadline > 0
         ? deadline
         : (Number.isFinite(every) && every > 0 ? every : 1),
@@ -819,7 +820,8 @@ async function onUpdateProductRow(it: any) {
       recurring: {
         recurring: !!it.periodicity.recurring,
         recurring_per_month_qty: Number(it.periodicity.recurring_per_month_qty),
-        recurring_qty: Number(it.periodicity.recurring_qty),
+        // recurring_qty: Number(it.periodicity.recurring_qty),
+        recurring_qty: 1,
         recurring_deadline_month_qty: Number(it.periodicity.recurring_deadline_month_qty),
       }
     })
@@ -926,7 +928,8 @@ async function addRowFromOffering(o: any) {
       recurring: {
         recurring: !!base.periodicity.recurring,
         recurring_per_month_qty: Number(base.periodicity.recurring_per_month_qty),
-        recurring_qty: Number(base.periodicity.recurring_qty),
+        // recurring_qty: Number(base.periodicity.recurring_qty),
+        recurring_qty: 1,
         recurring_deadline_month_qty: Number(base.periodicity.recurring_deadline_month_qty),
       }
     })
@@ -958,7 +961,8 @@ async function onUpdateOfferingRow(it: any) {
       recurring: {
         recurring: !!it.periodicity.recurring,
         recurring_per_month_qty: Number(it.periodicity.recurring_per_month_qty),
-        recurring_qty: Number(it.periodicity.recurring_qty),
+        // recurring_qty: Number(it.periodicity.recurring_qty),
+        recurring_qty: 1,
         recurring_deadline_month_qty: Number(it.periodicity.recurring_deadline_month_qty),
       }
     })
@@ -1072,7 +1076,8 @@ async function submit() {
         recurring: {
           recurring: !!p.periodicity.recurring,
           recurring_per_month_qty: Number(p.periodicity.recurring_per_month_qty),
-          recurring_qty: Number(p.periodicity.recurring_qty),
+          // recurring_qty: Number(p.periodicity.recurring_qty),
+          recurring_qty: 1,
           recurring_deadline_month_qty: Number(p.periodicity.recurring_deadline_month_qty),
         }
       }))
@@ -1086,7 +1091,8 @@ async function submit() {
         recurring: {
           recurring: !!o.periodicity.recurring,
           recurring_per_month_qty: Number(o.periodicity.recurring_per_month_qty),
-          recurring_qty: Number(o.periodicity.recurring_qty),
+          // recurring_qty: Number(o.periodicity.recurring_qty),
+          recurring_qty: 1,
           recurring_deadline_month_qty: Number(o.periodicity.recurring_deadline_month_qty),
         }
       }))
