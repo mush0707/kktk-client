@@ -12,7 +12,7 @@
           </span>
         </div>
         <div class="flex items-center gap-2">
-          <RouterLink to="/suppliers/orders" class="px-3 py-2 rounded-xl border hover:bg-gray-50">
+          <RouterLink to="/purchasing/orders" class="px-3 py-2 rounded-xl border hover:bg-gray-50">
             Վերադառնալ
           </RouterLink>
         </div>
@@ -77,26 +77,7 @@
         <tbody>
         <tr v-for="s in stageRows" :key="s.id" class="border-t">
           <td class="px-4 py-2">{{ s.id }}</td>
-          <!-- stages table row cell -->
-          <td class="px-4 py-2 align-top">
-            <input
-                v-model="stageNameEdits[s.id]"
-                class="w-full px-3 py-1.5 rounded-lg border focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <div v-if="isStageNameDirty(s)" class="mt-2 flex items-center gap-2">
-              <button
-                  class="px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
-                  :disabled="savingStageId===s.id || !(stageNameEdits[s.id] || '').trim()"
-                  @click="updateStageName(s)"
-              >
-                {{ savingStageId===s.id ? 'Թարմացվում է…' : 'Թարմացնել' }}
-              </button>
-              <button class="px-3 py-1.5 rounded-lg border hover:bg-gray-50" @click="resetStageName(s)">
-                Չեղարկել
-              </button>
-            </div>
-          </td>
-
+          <td class="px-4 py-2 font-medium">{{ s.name || '—' }}</td>
           <td class="px-4 py-2">
             <div class="text-xs text-slate-700">
               <div>Սկիզբ՝ {{ s.active_date_start || '—' }}</div>
@@ -312,7 +293,7 @@
     <div v-if="stageModal.open" class="fixed inset-0 z-50">
       <div class="absolute inset-0 bg-black/40" @click="closeStage()"></div>
       <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                  w-full max-w-6xl bg-white rounded-2xl shadow-xl overflow-hidden">
+                  w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden">
         <div class="flex items-center justify-between px-5 py-4 border-b">
           <h3 class="text-lg font-semibold">
             {{ selectedStage?.name || 'Փուլ' }} ·
@@ -344,7 +325,6 @@
                 <th class="px-4 py-3 text-left w-[120px]">Ընդհանուր արժեքի՝ Տոկոս</th>
                 <th class="px-4 py-3 text-left w-[160px]">Ակտիվություն</th>
                 <th class="px-4 py-3 text-left w-[140px]">Կարգավիճակ</th>
-                <th class="px-3 py-2 text-left">Բաշխումներ</th>
               </tr>
               </thead>
               <tbody>
@@ -384,16 +364,6 @@
                   <span class="px-2 py-0.5 rounded text-xs" :class="rowStatusClass(p.status)">
                     {{ rowStatusLabel(p.status) }}
                   </span>
-                </td>
-                <td class="px-4 py-2">
-                  <div v-if="(p.storages?.length || 0) > 0" class="space-y-1">
-                    <div v-for="s in p.storages" :key="s.storage_id" class="text-xs">
-                      <span class="font-medium">{{ s.storage?.address ?? s.storage_name }}</span>
-                      — {{ formatNumber(s.qty) }}
-                      <span class="text-gray-400">{{ s.measure ? $t(s.measure) : '' }}</span>
-                    </div>
-                  </div>
-                  <span v-else class="text-gray-400 text-xs">—</span>
                 </td>
               </tr>
               <tr v-if="(selectedStage?.products?.length || 0)===0">
@@ -444,9 +414,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
-import { ordersApi } from '@/api.js'
+import {ordersApi, purchasingOrdersApi} from '@/api.js'
 import { formatDateTime, fromNow } from '@/utils/dateFormat.js'
 
 /* route & state */
@@ -456,44 +426,7 @@ const id = computed(() => Number(route.params.id || 0))
 const order = ref<any>(null)
 const loading = ref(false)
 const busyKey = ref<string | null>(null)
-const stageNameEdits = ref<Record<number, string>>({})
-const savingStageId = ref<number|null>(null)
 
-watch(
-    () => order.value?.stages,
-    (stages: any[] | undefined) => {
-      (stages || []).forEach(s => {
-        stageNameEdits.value[s.id] = (s?.name ?? '').toString()
-      })
-    },
-    { immediate: true, deep: true }
-)
-
-function originalStageName(s: any) {
-  return (s?.name ?? '').toString()
-}
-function initStageEdit(s: any) {
-  if (stageNameEdits.value[s.id] === undefined) {
-    stageNameEdits.value[s.id] = originalStageName(s)
-  }
-}
-function isStageNameDirty(s: any) {
-  return (stageNameEdits.value[s.id] ?? '') !== ((s?.name ?? '') as string)
-}
-function resetStageName(s: any) {
-  stageNameEdits.value[s.id] = (s?.name ?? '').toString()
-}
-async function updateStageName(s: any) {
-  const next = (stageNameEdits.value[s.id] || '').trim()
-  if (!next || next === (s?.name ?? '')) return
-  savingStageId.value = s.id
-  try {
-    await ordersApi.updateOrderStageName(id.value, s.id, { name: next }) // փոխիր քո route-ին
-    s.name = next
-  } finally {
-    savingStageId.value = null
-  }
-}
 const flash = ref({ msg: '', kind: 'success' as 'success' | 'error' })
 let ft: any = null
 function setFlash(msg: string, kind: 'success' | 'error' = 'success') {
@@ -530,7 +463,6 @@ const ROW_STATUS_LABELS: Record<string, string> = {
   cancelled: 'Չեղարկված',
   draft: 'Սևագիր',
   send_to_purchasing: 'Ուղարկված գնումներ',
-  in_storage: "Պահեստում է"
 }
 function rowStatusLabel(s?: string) {
   return ROW_STATUS_LABELS[s || ''] || STATUS_LABELS[s || ''] || s || '—'
@@ -540,7 +472,7 @@ function rowStatusClass(s?: string) {
   if (s === 'pending') return 'bg-amber-100 text-amber-700'
   if (s === 'active' || s === 'processing') return 'bg-indigo-100 text-indigo-700'
   if (s === 'sent' || s === 'send_to_purchasing') return 'bg-blue-100 text-blue-700'
-  if (s === 'done' || s === 'success' || s === 'in_storage') return 'bg-emerald-100 text-emerald-700'
+  if (s === 'done' || s === 'success') return 'bg-emerald-100 text-emerald-700'
   if (s === 'draft') return 'bg-slate-100 text-slate-700'
   return 'bg-slate-100 text-slate-700'
 }
@@ -571,8 +503,8 @@ function formatNumber(value: any, { maximumFractionDigits = 6, minimumFractionDi
 async function fetchOrder() {
   loading.value = true
   try {
-    const res = await ordersApi.get(id.value)
-    order.value = res?.data ?? res ?? null
+    const res = await purchasingOrdersApi.show(id.value)
+    order.value = res?.data?.data ?? res ?? null
   } finally {
     loading.value = false
   }

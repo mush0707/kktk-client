@@ -45,6 +45,8 @@
           <th class="px-4 py-3">Գործընկեր / Պայմանագիր</th>
           <th class="px-4 py-3">Կարգավիճակ</th>
           <th class="px-4 py-3">Թարմացվել է</th>
+          <th class="px-4 py-3">Հայտարարված գներ</th>
+          <th class="px-4 py-3">Գնման գներ</th>
           <th class="px-4 py-3"></th>
         </tr>
         </thead>
@@ -101,9 +103,33 @@
             <span class="text-xs text-gray-400 ml-2">({{ fromNow(row.updated_at) }})</span>
           </td>
           <td class="px-4 py-3">
+            <div v-if="row.products_sum_maximum_price || row.offerings_sum_maximum_price" class="flex flex-col gap-y-2">
+              <p>Ապրանքներ՝ {{ priceCorrection(row.products_sum_maximum_price ?? 0) }}</p>
+              <p>Ծառայություն / Աշխատանքներ՝ {{ priceCorrection(row.offerings_sum_maximum_price ?? 0) }}</p>
+              <p class="font-bold">Ընդհանուր՝ {{ priceCorrection((row.offerings_sum_maximum_price ?? 0) + (row.products_sum_maximum_price ?? 0)) }} </p>
+            </div>
+            <div v-else>
+              բացակայում են
+            </div>
+          </td>
+          <td class="px-4 py-3">
+            <div v-if="row.products_sum_price || row.offerings_sum_price" class="flex flex-col gap-y-2">
+              <p>Ապրանքներ՝ {{ priceCorrection(row.products_sum_price ?? 0) }}</p>
+              <p>Ծառայություն / Աշխատանքներ՝ {{ priceCorrection(row.offerings_sum_price ?? 0) }}</p>
+              <p class="font-bold">Ընդհանուր՝ {{ priceCorrection((row.offerings_sum_price ?? 0) + (row.products_sum_price ?? 0)) }} </p>
+            </div>
+            <div v-else>
+              բացակայում են
+            </div>
+          </td>
+          <td class="px-4 py-3">
             <div class="flex flex-wrap gap-2">
               <!-- send_to_purchasing -->
-              <button v-if="row.status==='send_to_purchasing'"
+              <router-link :to="'/purchasing/orders/'+row.id+'/show'" v-if="row.status === 'active' || row.status === 'archived' || row.status === 'rejected'"
+                  class="px-3 py-1 text-xs text-white bg-blue-600 rounded-md hover:bg-blue-700">
+                Դիտել
+              </router-link>
+              <button v-else
                       class="px-3 py-1 text-xs text-white bg-blue-600 rounded-md hover:bg-blue-700"
                       @click="openEditor(row.id)">
                 Դիտել / Լրացնել
@@ -337,6 +363,15 @@ async function resetAndReload(){
 
 function debouncedSearch(){
   clearTimeout(t); t = setTimeout(resetAndReload, 300)
+}
+function priceCorrection(amount) {
+  let intlFormat = new Intl.NumberFormat('hy-AM', {
+    style: 'currency',
+    currency: 'amd'
+  })
+  amount = intlFormat.format(amount);
+  amount = amount.replace('AMD', '֏')
+  return amount;
 }
 
 onMounted(()=>{

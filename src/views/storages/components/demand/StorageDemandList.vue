@@ -187,7 +187,7 @@
 
 <script setup lang="ts">
 import {ref, computed, onMounted, onBeforeUnmount, watch} from 'vue'
-import { demandApi, authApi } from '@/api.js'
+import { storageDemandApi, authApi } from '@/api.js'
 import { formatDateTime, fromNow } from '@/utils/dateFormat'
 
 const actor = ref<any>(null)
@@ -265,7 +265,7 @@ async function openView(row:any){
   viewModal.value.rowRef = row     // պահում ենք հղումը ցանկի իրական տողին
   viewModal.value.data = null
 
-  const data = await demandApi.get(row.id)
+  const data = await storageDemandApi.get(row.id)
   viewModal.value.data = data
 }
 function closeView(){
@@ -313,10 +313,10 @@ async function cancelItem(it:any){
 
   cancelLoadingId.value = it.id
   try {
-    await demandApi.cancelItem(viewModal.value.data.id, it.id)
+    await storageDemandApi.cancelItem(viewModal.value.data.id, it.id)
 
     // բերում ենք թարմացված պահանջագիրը
-    const fresh = await demandApi.get(viewModal.value.data.id)
+    const fresh = await storageDemandApi.get(viewModal.value.data.id)
     viewModal.value.data = fresh
 
     // եթե backend-ը արդեն դրեց ամբողջ պահանջագիրը cancelled,
@@ -403,22 +403,22 @@ function canCancel(row:any) {
 async function onSubmitForApproval(row:any){
   if(!confirm('Ուղարկել հաստատման՞')) return
   submittingId.value = row.id
-  try { await demandApi.submitForApproval(row.id); resetAndReload() } finally { submittingId.value = null }
+  try { await storageDemandApi.submitForApproval(row.id); resetAndReload() } finally { submittingId.value = null }
 }
 async function onCancel(row:any){
   if(!confirm('Չեղարկե՞լ սևագիրը')) return
   submittingId.value = row.id
-  try { await demandApi.cancel(row.id); resetAndReload() } finally { submittingId.value = null }
+  try { await storageDemandApi.cancel(row.id); resetAndReload() } finally { submittingId.value = null }
 }
 async function onApprove(row:any){
   if(!confirm('Հաստատե՞լ պահանջագիրը')) return
   submittingId.value = row.id
-  try { await demandApi.approve(row.id); resetAndReload() } finally { submittingId.value = null }
+  try { await storageDemandApi.approve(row.id); resetAndReload() } finally { submittingId.value = null }
 }
 async function onSubmitToWarehouse(row:any){
   if(!confirm('Ուղարկե՞լ պահեստ')) return
   submittingId.value = row.id
-  try { await demandApi.submitToWarehouse(row.id); resetAndReload() } finally { submittingId.value = null }
+  try { await storageDemandApi.submitToWarehouse(row.id); resetAndReload() } finally { submittingId.value = null }
 }
 
 // paging
@@ -429,7 +429,7 @@ async function fetchPage(){
   if(loading.value || endReached.value) return
   loading.value = true
   try{
-    const page = await demandApi.list({
+    const page = await storageDemandApi.list({
       limit: limit.value,
       offset: offset.value,
       search: (search.value||'').trim() || undefined,

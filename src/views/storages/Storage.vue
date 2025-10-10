@@ -68,7 +68,7 @@ export default defineComponent({
   methods: {
     async list() {
       try {
-        const response = await api.get("storages", { params: { cell: 0 } })
+        const response = await api.get("storages", { params: { cell: 0, is_active: 1 } })
         this.storages = response.data.data || []
 
         // auto-navigate when exactly one storage (and it's not a cell)

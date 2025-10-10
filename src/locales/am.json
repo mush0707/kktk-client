@@ -272,7 +272,7 @@
   "ready": "Պատրաստ",
   "sent": "Ուղարկված",
   "accepted": "Հաստատված",
-  "rejected": "Չեղարկված (դրսից)",
+  "rejected": "Մերժված",
   "cancelled": "Չեղարկված",
   "invoice": "Հաշիվ ապրանքագիր",
   "invoice_updated_successfully": "Հաշիվ ապրանքագիրը հաջողությամբ թարմացվել է",
@@ -337,5 +337,15 @@
   "send_to_purchasing": "Ուղ․ մատակարարին",
   "announce_tender": "Հայտարարված է տենդեր",
   "archived": "Արխիվացված",
-  "part_of_order": "Պատվերի մաս"
+  "part_of_order": "Գնումների պատվերի առարկա",
+  "demands": "Պահանջագրեր",
+  "service": "Ծառայություն",
+  "work": "Աշխատանք",
+  "times": "Անգամ",
+  "in_progress": "Ընթացքում",
+  "suppliers_demands": "Պահանջագրեր",
+  "send_to_storage": "Ուղարկված պահեստ",
+  "entries": "Մուտքեր",
+  "in_storage": "Պահեստում է",
+  "finished": "Ավարտված"
 }

@@ -70,9 +70,7 @@
           <thead class="bg-gray-50">
           <tr>
             <th class="px-4 py-3 text-left">#</th>
-            <th class="px-4 py-3 text-left">
-              Ստորաբաժանում / Սկզբնական պահեստ
-            </th>
+            <th class="px-4 py-3 text-left">Ստորաբաժանում</th>
             <th class="px-4 py-3 text-left">Ստեղծող</th>
             <th class="px-4 py-3 text-left">Ստեղծվել է</th>
             <th class="px-4 py-3 text-left">Կարգավիճակ</th>
@@ -116,7 +114,7 @@
                   <button
                       class="px-3 py-1 text-xs font-medium text-white bg-rose-600 rounded-md hover:bg-rose-700 disabled:opacity-50"
                       :disabled="submittingId===row.id"
-                      @click="rejectRow(row)"
+                      @click="openRejectRow(row)"
                   >
                     Մերժել
                   </button>
@@ -154,54 +152,82 @@
 
   <!-- View modal -->
   <div v-if="view.open" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-3xl rounded-2xl shadow-xl overflow-hidden">
+    <div class="bg-white w-full max-w-6xl rounded-2xl shadow-xl overflow-hidden">
       <div class="px-4 py-3 border-b flex items-center justify-between">
         <div class="font-semibold">
           Պահանջագիր № {{ view.data?.id }}
           <span class="ml-2 text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-700">{{ statusLabel(view.data?.status) }}</span>
         </div>
-        <div class="grid md:grid-cols-3 gap-3 mb-4 text-sm text-gray-600">
-          <div v-if="view.data?.from_storage?.address"><b>Սկզբնական պահեստ:</b> {{ view.data?.from_storage?.address || view.data?.from_storage_address || '—' }}</div>
-          <div v-if="view.data?.department?.name"><b>Ստորաբաժանում:</b> {{ view.data?.department?.name || view.data?.department_name || '—' }}</div>
-        </div>
+
         <button class="p-2 hover:bg-gray-100 rounded" @click="closeView">✕</button>
       </div>
 
       <div class="p-4">
+        <div class="grid md:grid-cols-3 gap-3 mb-4 text-sm text-gray-600">
+          <div v-if="view.data?.from_storage?.address"><b>Սկզբնական պահեստ:</b> {{ view.data?.from_storage?.address || view.data?.from_storage_address || '—' }}</div>
+          <div v-if="view.data?.department?.name"><b>Ստորաբաժանում:</b> {{ view.data?.department?.name || view.data?.department_name || '—' }}</div>
+        </div>
+        <div class="mb-3 flex items-center justify-between">
+          <div class="text-sm text-slate-600"></div>
+          <button
+              class="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-sm"
+              @click="openExpectedArrivals()"
+          >
+            Տեսնել սպասվող մուտքերը
+            <svg viewBox="0 0 20 20" class="h-4 w-4 text-slate-500" fill="currentColor"><path d="M2 10a1 1 0 011-1h10.586l-3.293-3.293A1 1 0 1111 4.293l5 5a1 1 0 010 1.414l-5 5A1 1 0 0110.293 14.7L13.586 11H3a1 1 0 01-1-1z"/></svg>
+          </button>
+        </div>
         <div class="border rounded-xl overflow-hidden">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
             <tr>
               <th class="px-3 py-2 text-left">Ապրանք</th>
               <th class="px-3 py-2 text-right">Քանակ</th>
-              <th class="px-3 py-2 text-right">Չափ</th>
-<!--              <th class="px-3 py-2 text-center">Կարգավիճակ</th>-->
+              <th class="px-3 py-2 text-left">Ելքագրում</th>
+              <th class="px-3 py-2 text-center">Կարգավիճակ</th>
               <th class="px-3 py-2 text-center"></th>
             </tr>
             </thead>
             <tbody>
             <tr v-for="it in filteredItems" :key="it.id" class="border-t">
               <td class="px-3 py-2">
-                <div class="font-medium">{{ it.storage_product.product?.name || it.product_name || it.storage_product_id }}</div>
-                <div v-if="(it.storage_product.product?.characteristics||[]).length" class="mt-1 flex flex-wrap gap-1">
-                  <span v-for="c in it.storage_product.product.characteristics" :key="c.id||c.name" class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700">{{ c.name }}</span>
+                <div class="font-medium">{{ it.product?.name || it.product_name || it.storage_product_id }}</div>
+                <div v-if="(it.product?.characteristics||[]).length" class="mt-1 flex flex-wrap gap-1">
+                  <span v-for="c in it.product.characteristics" :key="c.id||c.name" class="text-[11px] px-2 py-0.5 rounded bg-gray-100 text-gray-700">{{ c.name }}</span>
                 </div>
               </td>
-              <td class="px-3 py-2 text-right tabular-nums">{{ fmt(it.qty) }}</td>
-              <td class="px-3 py-2 text-right">{{ unitShort(it.storage_product?.measure) }}</td>
+              <td class="px-3 py-2 text-right tabular-nums">{{ fmt(it.qty) }} {{ $t(it.measure ?? 'piece') }}</td>
 <!--              <td class="px-3 py-2 text-center">-->
 <!--                  <span :class="itemStatusPill(it.status)" class="px-2 py-0.5 rounded text-xs">-->
 <!--                    {{ itemStatusLabel(it.status) }}-->
 <!--                  </span>-->
 <!--              </td>-->
+              <td class="px-3 py-2 align-top">
+                <div v-if="(it.reserves?.length || 0) > 0" class="flex flex-col gap-1">
+                  <div v-for="r in it.reserves" :key="r.id"
+                       class="text-sm px-2 py-1 rounded border border-slate-200 bg-slate-50">
+                    <div class="font-medium">
+                      {{ r.cell?.name || 'Չտեղավորվածից' }}
+                    </div>
+                    <div class="text-xs text-slate-600">
+                      {{ fmt(r.qty) }} {{ $t(r.measure || it.measure || 'piece') }}
+                    </div>
+                  </div>
+                </div>
+                <span v-else class="text-xs text-slate-400">—</span>
+              </td>
+              <td class="px-3 py-2 text-center">
+                <span class="p-1" :class="statusPillClass(it.status)">
+                  {{ $t(it.status) }}
+                </span>
+              </td>
               <td class="px-3 py-2 text-center">
                 <!-- Item: approved → allow reject -->
-                <div class="flex gap-2">
+                <div v-if="(it.status==='approved' || it.status==='pending') && (view.data?.status==='awaiting_warehouse' || view.data?.status==='approved')" class="flex gap-2">
                   <button
-                      v-if="it.status==='approved' && view.data?.status==='awaiting_warehouse'"
                       class="px-2 py-1 text-xs rounded bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50"
                       :disabled="rejectingItemId===it.id"
-                      @click="rejectItem(it)"
+                      @click="openRejectItem(it)"
                   >
                     <span v-if="rejectingItemId===it.id">Մերժում…</span>
                     <span v-else>Մերժել</span>
@@ -211,7 +237,7 @@
                       class="flex gap-x-1 items-center px-2 py-1 text-xs rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
                       @click="openCellsModal(it)"
                   >
-                    Նշել ելքագրման բջիջ(ներ)ը
+                    Կառուցել ելքագրումը
                     <svg class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
                       <path d="M7.05 3.55a1 1 0 0 1 1.4 0l4.5 4.5a1 1 0 0 1 0 1.4l-4.5 4.5a1 1 0 0 1-1.4-1.4L10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
                     </svg>
@@ -243,66 +269,182 @@
         <button class="p-2 hover:bg-gray-100 rounded" @click="closeCellsModal">✕</button>
       </div>
 
-      <div class="p-4 space-y-3">
-        <div class="text-sm text-gray-600">
-          Պահանջված քանակ՝ <b>{{ fmt(cellsModal.item?.qty) }}</b> {{ unitShort(cellsModal.item?.storage_product?.measure) }}
+      <div class="p-5 space-y-4">
+        <!-- վերնամասի ինֆո-չիպեր -->
+        <div class="flex flex-wrap gap-2">
+    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
+      Պահանջված՝ <b class="ml-1">{{ fmt(cellsModal.item?.qty) }}</b> {{ unitShort(cellsModal.item?.storage_product?.measure) }}
+    </span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700">
+      Չտեղավորված առկա՝ <b class="ml-1">{{ fmt(cellsModal.availableNotPlaced) }}</b>
+    </span>
         </div>
 
-        <table class="min-w-full text-sm border rounded">
-          <thead class="bg-gray-50">
-          <tr>
-            <th class="px-3 py-2 text-left">Բջիջ</th>
-            <th class="px-3 py-2 text-right">Մնացորդ</th>
-            <th class="px-3 py-2 text-right">Ավելի. (առկա)</th>
-            <th class="px-3 py-2 text-right">Ելքագրման քանակ</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr v-for="row in cellsModal.cells" :key="row.cell_id" class="border-t">
-            <td class="px-3 py-2">{{ row.cell_name }}</td>
-            <td class="px-3 py-2 text-right">{{ fmt(row.qty) }}</td>
-            <td class="px-3 py-2 text-right">{{ fmt(row.available) }}</td>
-            <td class="px-3 py-2 text-right">
-              <input
-                  type="number" min="0" step="0.001"
-                  class="border rounded px-2 py-1 w-32 text-right"
-                  v-model.number="cellsModal.alloc[row.cell_id]"
-              />
-            </td>
-          </tr>
-          <tr v-if="!cellsModal.cells.length">
-            <td colspan="4" class="px-3 py-6 text-center text-gray-500">Բջիջներ չկան</td>
-          </tr>
-          </tbody>
-        </table>
-
-        <div class="text-right text-sm">
-          Ընդհանուր՝ <b>{{ fmt(sumAlloc) }}</b> / {{ fmt(cellsModal.item?.qty) }}
+        <!-- բջիջների աղյուսակ -->
+        <div class="border rounded-xl overflow-hidden">
+          <table class="min-w-full text-sm">
+            <thead class="bg-gray-50">
+            <tr>
+              <th class="px-3 py-2 text-left">Բջիջ</th>
+              <th class="px-3 py-2 text-right">Մնացորդ</th>
+              <th class="px-3 py-2 text-right">Ավելի. (առկա)</th>
+              <th class="px-3 py-2 text-right">Ելքագրման քանակ</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="row in cellsModal.cells" :key="row.cell_id" class="border-t">
+              <td class="px-3 py-2">{{ row.cell_name }}</td>
+              <td class="px-3 py-2 text-right tabular-nums">{{ fmt(row.qty) }}</td>
+              <td class="px-3 py-2 text-right tabular-nums">{{ fmt(row.available) }}</td>
+              <td class="px-3 py-2 text-right">
+                <input
+                    type="number" min="0" step="0.001"
+                    class="border border-slate-300 rounded-lg px-2 py-1 w-32 text-right focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                    v-model.number="cellsModal.alloc[row.cell_id]"
+                />
+              </td>
+            </tr>
+            <tr v-if="!cellsModal.cells.length">
+              <td colspan="4" class="px-3 py-6 text-center text-gray-500">Տվյալ ապրանքը բջիջներում առկա չէ</td>
+            </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div class="flex justify-end gap-2">
-          <button class="px-3 py-2 rounded border" @click="closeCellsModal">Փակել</button>
+        <!-- ներքևի քանորդներ -->
+        <div class="grid sm:grid-cols-2 gap-4">
+          <!-- not placed քարտ -->
+          <div class="rounded-xl border border-slate-200 p-3">
+            <div class="text-sm font-medium mb-2">Չտեղավորվածից ելքագրման քանակ</div>
+
+            <div class="flex items-end gap-3">
+              <div class="grow">
+                <input
+                    type="number" min="0" step="0.001"
+                    class="w-full border border-slate-300 rounded-lg px-3 py-2 text-right
+                 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                    v-model.number="cellsModal.allocNotPlaced"
+                />
+                <div class="mt-1 text-xs text-slate-500">
+                  Նախկինում ընտրված՝ <b>{{ fmt(cellsModal.prevNotPlaced) }}</b>
+                  · Առկա՝ <b>{{ cellsModal.availableNotPlaced!=null ? fmt(cellsModal.availableNotPlaced) : '—' }}</b>
+                </div>
+
+                <!-- no hard validation against availableNotPlaced, because BE no longer provides it -->
+                <!-- keep a soft hint only when value is negative -->
+                <p v-if="Number(cellsModal.allocNotPlaced||0) < 0" class="text-xs text-rose-600 mt-1">
+                  Չի կարող լինել բացասական։
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ընդհանուր քարտ -->
+          <div class="rounded-xl border border-slate-200 p-3">
+            <div class="text-sm font-medium mb-2">Ընդհանուր</div>
+            <div class="text-sm">
+              <div class="flex items-center justify-between">
+                <span>Ընդամենը (բջիջներ)</span>
+                <b class="tabular-nums">{{ fmt(sumAllocCells) }}</b>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Ընդամենը (բջիջներ + չտեղավորված)</span>
+                <b class="tabular-nums">{{ fmt(sumTotal) }}</b>
+              </div>
+              <div class="mt-1 text-xs text-slate-500">Սահման՝ {{ fmt(requiredQty) }}</div>
+              <p v-if="sumTotal !== Number(requiredQty)" class="text-xs text-amber-700 mt-1">
+                Պետք է բաշխել ճշգրիտ {{ fmt(requiredQty) }} քանակ (բջիջներ + չտեղավորվող)։
+              </p>
+            </div>
+          </div>
+        </div>
+        <!-- footer buttons -->
+        <div class="flex justify-end gap-2 pt-1">
+          <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" @click="closeCellsModal">Փակել</button>
           <button
-              class="px-3 py-2 rounded border bg-gray-900 text-white disabled:opacity-50"
-              :disabled="savingCells || sumAlloc > Number(cellsModal.item?.qty || 0)"
+              class="px-3 py-2 rounded-xl text-white"
+              :class="(!canSave || savingCells) ? 'bg-slate-400 cursor-not-allowed' : 'bg-green-900 hover:bg-green-800'"
+              :disabled="!canSave || savingCells"
               @click="saveCellsAlloc"
           >
             <span v-if="savingCells">Պահպանում…</span>
             <span v-else>Պահպանել</span>
           </button>
         </div>
+
+
+        <!-- վալիդացիոն հուշում -->
+        <p v-if="Number(sumTotal) !== Number(requiredQty)" class="text-sm text-amber-700 mt-2">
+          Պետք է բաշխել ճշգրիտ <b>{{ fmt(requiredQty) }}</b> քանակ (բջիջներ + չտեղավորված)։
+        </p>
+        <p v-else-if="Number(cellsModal.notPlaced||0) > Number(cellsModal.availableNotPlaced||0)" class="text-sm text-rose-600 mt-2">
+          «Չտեղավորվածից» ընտրած քանակը չի կարող գերազանցել հասանելիին։
+        </p>
         <p v-if="cellsModal.error" class="text-sm text-rose-600">{{ cellsModal.error }}</p>
       </div>
     </div>
   </div>
+  <!-- Expected Arrivals Modal -->
+  <div v-if="expectedModal.open" class="fixed inset-0 z-[55] bg-black/40 flex items-center justify-center p-4">
+    <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b flex items-center justify-between">
+        <div class="font-semibold">Սպասվող մուտքեր</div>
+        <button class="p-2 rounded hover:bg-gray-100" @click="closeExpectedModal">✕</button>
+      </div>
+
+      <div class="p-4">
+        <div v-if="expectedModal.loading" class="text-sm text-slate-500">Բեռնվում է…</div>
+        <div v-else>
+          <div v-if="expectedModal.error" class="text-sm text-rose-600 mb-2">{{ expectedModal.error }}</div>
+
+          <div class="border rounded-xl overflow-hidden">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-50">
+              <tr>
+                <th class="px-3 py-2 text-left">Ապրանք</th>
+                <th class="px-3 py-2 text-right">Քանակ</th>
+                <th class="px-3 py-2 text-right">Կարգավիճակ</th>
+                <th class="px-3 py-2 text-left">Մուտքը սպասվում է մինչև</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr v-for="r in expectedModal.rows" :key="r.id || r.product_id + '-' + r.expected_until" class="border-t">
+                <td class="px-3 py-2">{{ r.application_order_product.product?.name }}</td>
+                <td class="px-3 py-2 text-right">{{ fmt(r.application_order_product.qty) }} {{ $t(r.application_order_product.measure ?? 'piece') }}</td>
+                <td class="px-3 py-2 text-right">{{ $t(r.status) }}</td>
+                <td class="px-3 py-2">
+                  <span :title="r.expected_until">{{ r.active_date_finished }}</span>
+                </td>
+              </tr>
+              <tr v-if="!expectedModal.rows.length && !expectedModal.loading">
+                <td colspan="4" class="px-3 py-6 text-center text-gray-500">Տվյալներ չկան</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-4 py-3 border-t text-right">
+        <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" @click="closeExpectedModal">Փակել</button>
+      </div>
+    </div>
+  </div>
+  <RejectReasonModal
+      :open="reasonModal.open"
+      :title="reasonModal.title"
+      :loading="reasonModal.loading"
+      @close="reasonModal.open = false"
+      @confirm="confirmReject"
+  />
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import { warehouseDemandApi as demandApi, mainApi } from '@/api.js'
+import {warehouseDemandApi as demandApi, mainApi, warehouseDemandApi} from '@/api.js'
 import { formatDateTime, fromNow } from '@/utils/dateFormat'
-
+import RejectReasonModal from '@/components/RejectReasonModal.vue'
 const route = useRoute()
 const storageId = computed(() => Number(route.params.id))
 
@@ -316,7 +458,77 @@ const endReached = ref(false)
 const search = ref('')
 const status = ref('awaiting_warehouse')
 const storage = ref<any>(null)
+const reasonModal = ref<{
+  open: boolean
+  loading: boolean
+  title: string
+  kind: 'row' | 'item'
+  target: any | null
+}>({
+  open: false,
+  loading: false,
+  title: 'Մերժել',
+  kind: 'row',
+  target: null
+})
+function openRejectRow(row:any) {
+  reasonModal.value = {
+    open: true,
+    loading: false,
+    title: `Մերժել պահանջագիրը №${row.id}`,
+    kind: 'row',
+    target: row
+  }
+}
 
+function openRejectItem(it:any) {
+  const demandId = view.value?.data?.id
+  if (!demandId) return
+  reasonModal.value = {
+    open: true,
+    loading: false,
+    title: `Մերժել ապրանքը՝ ${it.product?.name || it.product_name || it.id}`,
+    kind: 'item',
+    target: it
+  }
+}
+async function confirmReject(reason: string) {
+  const modal = reasonModal.value
+  const target = modal.target
+  if (!target) return
+
+  modal.loading = true
+
+  try {
+    if (modal.kind === 'row') {
+      // disable the original button while we submit
+      submittingId.value = target.id
+      await demandApi.reject(storageId.value, target.id, { reason })
+      // Option A: refresh list
+      // await reloadFromStart()
+      // Option B: update in place
+      target.status = 'rejected'
+    } else {
+      // item-level reject
+      rejectingItemId.value = target.id
+      const demandId = view.value?.data?.id
+      await demandApi.rejectItem(storageId.value, demandId, target.id, { reason })
+      target.status = 'rejected'
+      // If BE changes the whole demand’s status, you can also sync:
+      // if (view.value.rowRef) view.value.rowRef.status = 'rejected'
+    }
+
+    // close modal
+    modal.open = false
+  } catch (e:any) {
+    // Optional: surface error (toast/snackbar)
+    // toast.error(e?.response?.data?.message || 'Չհաջողվեց մերժել')
+  } finally {
+    modal.loading = false
+    submittingId.value = null
+    rejectingItemId.value = null
+  }
+}
 async function loadStorage() {
   storage.value = await mainApi.getStorageById(storageId.value)
 }
@@ -472,8 +684,9 @@ function closeView(){ view.value.open = false; view.value.data = null }
 
 // only items with these statuses
 const filteredItems = computed(() => {
+  console.log(view.value.data?.items);
   const items = Array.isArray(view.value.data?.items) ? view.value.data.items : []
-  return items.filter((it:any)=> ['approved','rejected','written_off'].includes(String(it.status||'')))
+  return items.filter((it:any)=> ['pending','approved','rejected','written_off'].includes(String(it.status||'')))
 })
 const busyId = ref<number|null>(null);
 const itemBusyId = ref<number|null>(null);
@@ -513,14 +726,23 @@ async function doWriteOff(row){
   finally { busyId.value = null; }
 }
 
-async function rejectItem(it){
-  if(!confirm('Մերժե՞լ ապրանքը')) return;
-  itemBusyId.value = it.id;
-  try{
-    await api.rejectItem(storageId.value, parent.value.id, it.id);
-    it.status='rejected';
-    // եթե backend-ը վերածեց ամբողջ row-ը rejected, թարմացրու նաև ցանկի row-ը (parentRowRef.status='rejected')
-  } finally { itemBusyId.value = null; }
+async function rejectItem(it:any){
+  if (!confirm('Մերժե՞լ ապրանքը')) return
+  const demandId = view.value?.data?.id
+  if (!demandId) return
+
+  rejectingItemId.value = it.id
+  try {
+    await warehouseDemandApi.rejectItem(storageId.value, demandId, it.id)
+    it.status = 'rejected'
+    // եթե backend-ը նաև փոխի ամբողջ պահանջագրի կարգավիճակը, ցանկության դեպքում սինք արա parent row-ը
+    if (view.value.rowRef) view.value.rowRef.status = 'rejected'
+  } catch (e:any) {
+    // optional: show a toast/message
+    // toast.error(e?.response?.data?.message || 'Չհաջողվեց մերժել')
+  } finally {
+    rejectingItemId.value = null
+  }
 }
 
 const cellsModal = ref({
@@ -529,46 +751,97 @@ const cellsModal = ref({
   item_id: 0,
   item: null as any,
   cells: [] as any[],
-  alloc: {} as Record<number, number>, // cell_id -> qty
+  allocByCell: {} as Record<number, number>, // cell_id -> qty
+  allocNotPlaced: 0,                         // qty for cell_id = null
   error: ''
 })
 const savingCells = ref(false)
 const sumAlloc = computed(()=> Object.values(cellsModal.value.alloc).reduce((a,b)=> a + Number(b||0), 0))
+cellsModal.value.prevNotPlaced = cellsModal.value.prevNotPlaced ?? 0
+cellsModal.value.allocNotPlaced = cellsModal.value.allocNotPlaced ?? 0
+// optional: show dash when BE doesn’t provide it
+cellsModal.value.availableNotPlaced = cellsModal.value.availableNotPlaced ?? null
 
+const requiredQty   = computed(() => Number(cellsModal.value.item?.qty || 0))
+const sumAllocCells = computed(() =>
+    Object.values(cellsModal.value.allocByCell || {}).reduce((a,b)=> a + Number(b||0), 0)
+)
+const sumTotal      = computed(() =>
+    Number(sumAllocCells.value) + Number(cellsModal.value.allocNotPlaced || 0)
+)
+
+const canSave = computed(() => {
+  // ոչ մի թիվ չպետք է լինի բացասական
+  if (Number(cellsModal.value.allocNotPlaced || 0) < 0) return false
+  for (const q of Object.values(cellsModal.value.allocByCell)) {
+    if (Number(q||0) < 0) return false
+  }
+  // ճշգրիտ հավասար
+  return Number(sumTotal.value) === Number(requiredQty.value)
+})
 async function openCellsModal(item:any){
   cellsModal.value.open = true
-  cellsModal.value.item_id = item.id
+  cellsModal.value.item_id  = item.id
   cellsModal.value.demand_id = view.value.data.id
   cellsModal.value.item = item
   cellsModal.value.error = ''
   cellsModal.value.cells = []
-  cellsModal.value.alloc = {}
+  cellsModal.value.allocByCell = {}
+  cellsModal.value.allocNotPlaced = 0
 
-  const storageId = /* current storage route param */ Number(route.params.id)
-  const dto = await demandApi.getItemCells(storageId, view.value.data.id, item.id)
+  const dto = await demandApi.getItemCells(Number(route.params.id), view.value.data.id, item.id)
 
-  cellsModal.value.cells = dto.cells
-  // preload existing allocations
+  // բջիջների ցանկը
+  cellsModal.value.cells = dto.cells || []
+
+  // նախապես հատկացվածները
   for (const a of (dto.allocated || [])) {
-    cellsModal.value.alloc[a.cell_id] = Number(a.qty || 0)
+    const qty = Number(a.qty || 0)
+    if (a.cell_id == null) {
+      cellsModal.value.allocNotPlaced = qty
+    } else {
+      cellsModal.value.allocByCell[Number(a.cell_id)] = qty
+    }
   }
 }
 
 function closeCellsModal(){ cellsModal.value.open=false }
 
 async function saveCellsAlloc(){
+  if (!canSave.value) return
   savingCells.value = true
   cellsModal.value.error = ''
+
   try {
-    const allocations = Object.entries(cellsModal.value.alloc)
-        .map(([cell_id, qty])=>({ cell_id: Number(cell_id), qty: Number(qty||0) }))
-        .filter(x=> x.qty > 0)
+    const measure = String(
+        cellsModal.value.item?.measure ??
+        cellsModal.value.item?.storage_product?.measure ??
+        'piece'
+    )
 
-    const storageId = Number(route.params.id)
-    await demandApi.upsertItemCells(storageId, cellsModal.value.demand_id, cellsModal.value.item_id, allocations)
+    const allocations: Array<{cell_id: number|null; qty:number; measure:string}> = []
 
-    // refresh parent demand to reflect chosen cells (optional if BE returns them)
-    const fresh = await demandApi.get(storageId, cellsModal.value.demand_id)
+    // բջիջներից
+    for (const [cellIdStr, qtyAny] of Object.entries(cellsModal.value.allocByCell)) {
+      const qty = Number(qtyAny || 0)
+      const cell_id = Number(cellIdStr)
+      if (qty > 0) allocations.push({ cell_id, qty, measure })
+    }
+
+    // չտեղավորված
+    const np = Number(cellsModal.value.allocNotPlaced || 0)
+    if (np > 0) allocations.push({ cell_id: null, qty: np, measure })
+
+    // ուղարկում
+    await demandApi.upsertItemCells(
+        Number(route.params.id),
+        cellsModal.value.demand_id,
+        cellsModal.value.item_id,
+        { allocations } // now each row has { cell_id, qty, measure }
+    )
+
+    // refresh
+    const fresh = await demandApi.get(Number(route.params.id), cellsModal.value.demand_id)
     view.value.data = fresh
 
     closeCellsModal()
@@ -578,7 +851,42 @@ async function saveCellsAlloc(){
     savingCells.value = false
   }
 }
+// expected arrivals modal state
+const expectedModal = ref<{open:boolean; loading:boolean; rows:any[]; error:string}>({
+  open:false, loading:false, rows:[], error:''
+})
 
+function unique<T>(arr:T[]) { return Array.from(new Set(arr)) }
+
+async function openExpectedArrivals(){
+  // հավաքում ենք կոնկրետ այս աղյուսակում ցուցադրվող տողերի product_id-ները
+  const ids = unique(
+      (filteredItems.value || [])
+          .map((it:any) => Number(it?.product?.id ?? it?.product_id ?? 0))
+          .filter((id:number) => id>0)
+  )
+  if (ids.length===0){
+    expectedModal.value = { open:true, loading:false, rows:[], error:'Չկան ապրանքներ' }
+    return
+  }
+
+  expectedModal.value.open = true
+  expectedModal.value.loading = true
+  expectedModal.value.rows = []
+  expectedModal.value.error = ''
+
+  try{
+    // ⚠️ ԿԱՐԵՎՈՐ՝ հարմարեցրու քո API անունը.
+    // օրինակ՝ GET/POST storages/:id/demands/expected-arrivals  { product_ids: [...] }
+    const dto = await demandApi.getExpectedArrivals(storageId.value, { product_ids: ids })
+    expectedModal.value.rows = Array.isArray(dto?.data) ? dto.data : (dto ?? [])
+  }catch(e:any){
+    expectedModal.value.error = e?.response?.data?.message || e.message || 'Չհաջողվեց ստանալ ցուցակը'
+  }finally{
+    expectedModal.value.loading = false
+  }
+}
+function closeExpectedModal(){ expectedModal.value.open=false }
 onMounted(async () => {
   await loadStorage()
   reloadFromStart()

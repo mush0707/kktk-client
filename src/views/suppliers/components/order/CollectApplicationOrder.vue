@@ -373,7 +373,8 @@ function periodicityLabel(r: any): string {
     return `Մեկ անգամով`
   }
   const every = Number(r?.recurring_per_month_qty);
-  const times = Number(r?.recurring_qty);
+  const times = 1;
+  // const times = Number(r?.recurring_qty);
   const deadline = Number(r?.recurring_deadline_month_qty);
   const fmt = (n: number) => formatNumber(n, { maximumFractionDigits: 6 });
   return `յուրաքանչյուր ${fmt(every)} ամիսը ${fmt(times)} անգամ · մինչև ${fmt(deadline)} ամիս`;
@@ -405,7 +406,8 @@ function rememberProductRowView(row: any): void {
     sku: p.sku || p.slug || '',
     recurring: row?.recurring,
     recurring_per_month_qty: Number(row?.recurring_per_month_qty ?? 0),
-    recurring_qty: Number(row?.recurring_qty ?? 0),
+    // recurring_qty: Number(row?.recurring_qty ?? 0),
+    recurring_qty: 1,
     recurring_deadline_month_qty: Number(row?.recurring_deadline_month_qty ?? 0),
   };
 }
@@ -422,7 +424,8 @@ function rememberOfferingRowView(row: any): void {
     desc: o.description || '',
     recurring: row?.recurring,
     recurring_per_month_qty: Number(row?.recurring_per_month_qty ?? 0),
-    recurring_qty: Number(row?.recurring_qty ?? 0),
+    // recurring_qty: Number(row?.recurring_qty ?? 0),
+    recurring_qty: 1,
     recurring_deadline_month_qty: Number(row?.recurring_deadline_month_qty ?? 0),
   };
 }
