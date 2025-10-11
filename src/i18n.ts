@@ -10,7 +10,7 @@ document.documentElement.lang = saved
 export const i18n = createI18n({
     legacy: false,
     locale: saved,         // default: Armenian
-    fallbackLocale: 'en',
+    fallbackLocale: 'am',
     messages: { am, en },
 })
 

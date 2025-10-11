@@ -213,6 +213,7 @@ export const rolePositionApi = {
     updateStages(id: number, payload: any) {
         return api.patch(`/role-positions/${id}/stages`, payload).then(r => r.data)
     },
+
 }
 
 export const vacancyApi = {
@@ -240,9 +241,8 @@ export const vacancyApi = {
         return api.patch(`/vacancies/${id}/close`).then(r => r.data)
     },
 
-    addCadidate(id, cadidateId) {
-        console.log(id, cadidateId)
-        return api.post(`/vacancies/${id}/candidate/add`, {candidate_id: cadidateId}).then(r => r.data)
+    addCadidate(id: number, payload: { candidate_id: number, department_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/add`, payload).then(r => r.data)
     },
 
     removeCadidate(id: number, cadidateId: number) {
@@ -270,10 +270,12 @@ export const candidateApi = {
     create: (payload: any) => api.post('/candidates', payload).then(r => r.data),
     update: (id: number, payload: any) => api.post(`/candidates/${id}`, payload).then(r => r.data),
     getDocTypes: () => api.get('/candidates/doc-types').then(r => r.data),
-    archiveDocument: (id: number) => {
-        console.log(id)
-        api.patch(`/candidates/${id}/documents/${id}/archive`).then(r => r.data)
+    archiveDocument: (id: number, docId: number) => {
+        api.patch(`/candidates/${id}/documents/${docId}`).then(r => r.data)
     },
+
+    updateDocuments: (id: number, payload: any) => api.post(`/candidates/${id}/documents`, payload).then(r => r.data),
+    getById: (id: number) => api.get(`/candidates/${id}`).then(r => r.data),
 }
 
 export const purchasingPartnerApi = {
@@ -335,9 +337,7 @@ export const purchasingOrdersApi = {
     rejectProduct(id, productId) {
         return api.delete(`/purchasing/orders/${id}/products/${productId}`)
     },
-    rejectOffering(id, offeringId) {
-        return api.delete(`/purchasing/orders/${id}/offerings/${productId}`)
-    },
+
     // ուղղում՝ offeringId
     rejectOffering(orderId, offeringId) {
         return api.delete(`/purchasing/orders/${orderId}/offerings/${offeringId}`)
@@ -681,4 +681,107 @@ export const mfgApi = {
     async deleteMOOutput(storageId: number, moId: number, outputId: number) {
         await api.delete(`/storages/manufacturing_orders/${storageId}/${moId}/outputs/${outputId}`)
     },
+}
+
+export const employeesApi = {
+    list: (params) => api.get('/employees/staff-users', {params}).then(r => r.data),
+    async create(payload) {
+        const {data} = await api.post("/employees", payload);
+        return data;
+    }, async update(id, payload) {
+        const {data} = await api.patch(`/employees/${id}`, payload);
+        return data;
+    },
+    getDocTypes: () => api.get('/employees/doc-types').then(r => r.data),
+    async listDocuments(employeeId) {
+        const {data} = await api.get(`/employees/${employeeId}/documents`)
+        return data.data
+    },
+    async uploadDocument(employeeId, formData) {
+        const {data} = await api.post(`/employees/${employeeId}/documents`, formData, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        })
+        return data.data
+    },
+    async show(id: number) {
+        const {data} = await api.get(`/employees/${id}/`)
+        return data.data
+    },
+    async userSendActivate(id: number, payload: object) {
+        const {data} = await api.post(`/employees/${id}/activate`, payload)
+        return data.data
+    },
+
+    async dismissEmployee(id: number) {
+        const {data} = await api.post(`/employees/${id}/dismiss`)
+        return data.data
+    },
+    async transfer(id: number, role_position_id: number) {
+        const {data} = await api.post(`/employees/${id}/transfer`, {role_position_id})
+        return data.data
+    },
+    async getLeaveBalances(id: number) {
+        const {data} = await api.get(`/employees/${id}/leave-balances`)
+        return data
+    },
+    async getLiveTypes(id: number) {
+        const {data} = await api.get(`/employees/${id}/leave-types`)
+        return data
+    }
+}
+
+export async function activateAccount(payload: {
+    email: string,
+    token: string,
+    password: string,
+    password_confirmation: string
+}) {
+    return api.post('/account/activate', payload);
+}
+
+export const contractsApi = {
+    async create(payload: object) {
+        const {data} = await api.post("/employee-contracts", payload);
+        return data;
+    },
+    async updateLeaveTypes(id: number, payload: object) {
+        const {data} = await api.patch(`/employee-contracts/${id}/leave-types`, payload);
+        return data;
+    },
+    getDocTypes: () => api.get('/employee-contracts/doc-types').then(r => r.data),
+    async uploadDocument(contractId: number, formData: any) {
+        const {data} = await api.post(`/employee-contracts/${contractId}/documents`, formData, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        })
+        return data.data
+    },
+}
+
+export const leaveTypeApi = {
+    list: () => api.get('/leave-types').then(r => r.data),
+    async create(payload: object) {
+        const {data} = await api.post("/leave-types", payload);
+        return data;
+    },
+    update(id: number, payload: object) {
+        return api.patch(`/leave-types/${id}`, payload).then(r => r.data)
+    },
+}
+export const leaveRequestApi = {
+    list: (params) => api.get('/leave-requests', {params}).then(r => r.data),
+    userList: (id, params) => api.get(`/leave-requests/list/${id}`, {params}).then(r => r.data),
+    approveStatus(id: number) {
+        return api.patch(`/leave-requests/${id}/approve`).then(r => r.data)
+    },
+    async create(payload: object) {
+        const {data} = await api.post("/leave-requests", payload);
+        return data;
+    },
+    cancelStatus(id: number) {
+        return api.post(`/leave-requests/${id}/cancel`).then(r => r.data)
+    },
+    rejectStatus(id: number, data: object) {
+        return api.post(`/leave-requests/${id}/reject`, data).then(r => r.data)
+    }
+
 }

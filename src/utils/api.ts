@@ -1,7 +1,7 @@
 import axios from 'axios'
 import { useAuth } from '@/stores/auth'
 import router from '@/router'
-import { useI18n } from "vue-i18n";
+import {i18n} from '@/i18n' // ✅ import your initialized i18n instance
 import { useToast } from "vue-toastification";
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL,

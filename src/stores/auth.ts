@@ -1,7 +1,7 @@
-import { defineStore } from 'pinia'
+import {defineStore} from 'pinia'
 import api from '@/utils/api'
 
-export type Me = { id: number; name: string; email: string }
+export type Me = { id: number; name: string; email: string, employee: object | null }
 
 export const useAuth = defineStore('auth', {
     state: () => ({
@@ -40,7 +40,7 @@ export const useAuth = defineStore('auth', {
             if (!this.token) return
             const res = await api.get('/account/me')
             const payload = res.data?.data ?? {}
-            this.user = { id: payload.id, name: payload.name, email: payload.email }
+            this.user = { id: payload.id, name: payload.name, email: payload.email, employee: payload.employee }
             this.roles = payload.roles ?? []
             this.abilities = payload.abilities ?? []
             api.defaults.headers.common['Authorization'] = `Bearer ${this.token}`

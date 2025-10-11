@@ -80,11 +80,17 @@
                       class="px-3 py-1 text-xs font-medium text-white bg-sky-600 rounded-md shadow hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500">
                 {{ $t('manage_staff') }}
               </button>
+
               <router-link v-if="department.active" :to="'/departments/'+department.id+'/control/product-types'"
                            type="button"
                            class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
                 {{ $t('product_types') }}
               </router-link>
+              <button @click="managePositions(department)"
+                      type="button"
+                      class="px-3 py-1 text-xs font-medium text-white bg-amber-600 rounded-md shadow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                {{ $t('positions') || 'Հաստիքներ' }}
+              </button>
             </div>
           </td>
         </tr>
@@ -94,6 +100,11 @@
   </div>
   <AddEditDepartmentModal v-if="showAddEditDepartment" v-bind:department="selectedDepartment" @updateList="updateList" />
   <DepartmentStaffModal v-if="showDepartmentStaff" v-bind:department="selectedDepartment" />
+  <DepartmentPositionsModal
+      v-if="showDepartmentPositions"
+      :department="selectedDepartment"
+      @close="showDepartmentPositions = false"
+  />
 </template>
 
 <script>
@@ -102,14 +113,16 @@ import api from "@/utils/api.js";
 import VueSelect from "vue3-select-component";
 import {useToast} from "vue-toastification";
 import DepartmentStaffModal from "@/views/control/departments/modal/DepartmentStaffModal.vue";
+import DepartmentPositionsModal from "@/views/control/departments/modal/DepartmentPositionsModal.vue";
 const toast = useToast();
 
 export default {
-  components: {DepartmentStaffModal, VueSelect, AddEditDepartmentModal},
+  components: {DepartmentPositionsModal, DepartmentStaffModal, VueSelect, AddEditDepartmentModal},
   data() {
     return {
       showAddEditDepartment: false,
       showDepartmentStaff: false,
+      showDepartmentPositions: false,
       selectedDepartment: null,
       departments: [],
       users: []
@@ -170,6 +183,10 @@ export default {
         toast.success(this.$t('leader_successfully_attached'));
       }).catch((response) => {
       })
+    },
+    managePositions(department) {
+      this.selectedDepartment = department;
+      this.showDepartmentPositions = true;
     },
   },
   mounted() {
