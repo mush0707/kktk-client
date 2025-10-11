@@ -140,6 +140,8 @@ const onSendToSupplier = onSendToPurchasing
 
 // search + paging
 const q = ref('')
+const status = ref('')
+
 let t: any = null
 function debouncedFetch(){ if(t) clearTimeout(t); t = setTimeout(()=> fetchRows(true), 250) }
 
@@ -199,7 +201,7 @@ async function fetchRows(reset = true){
     loadingMore.value = true
   }
   try{
-    const res = await ordersApi.list({ search: q.value || '', limit: limit.value, offset: offset.value })
+    const res = await ordersApi.list({ search: q.value || '', limit: limit.value, offset: offset.value, status: status.value })
     const data = res?.data ?? res ?? []
     if (Array.isArray(data) && data.length) {
       rows.value.push(...data)
@@ -228,10 +230,18 @@ onBeforeUnmount(()=>{ if (io) io.disconnect(); io = null })
     <div class="bg-white border border-gray-300 rounded-2xl p-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <input v-model.trim="q" @input="debouncedFetch()" placeholder="Փնտրել պատվեր՝ համար, բաժին, մատակարար…" class="border border-gray-300 rounded-xl px-3 py-2 w-[360px]" />
+        <select v-model="status" class="border border-gray-300 rounded-xl px-3 py-2 w-full" @change="fetchRows(true)">
+          <option value="">Բոլորը</option>
+          <option value="active">Ակտիվ</option>
+          <option value="cancelled">Չեղարկված</option>
+          <option value="rejected">Չեղարկված գնումներից</option>
+          <option value="rejected_from_supplier">Մերժվել է մատակարարից</option>
+          <option value="archived">Ավարտված</option>
+        </select>
       </div>
-      <div class="text-sm text-slate-500">
-        {{ rows.length }} արդյունք{{ eof && rows.length ? ' · ավարտ' : '' }}
-      </div>
+<!--      <div class="text-sm text-slate-500">-->
+<!--        {{ rows.length }} արդյունք{{ eof && rows.length ? ' · ավարտ' : '' }}-->
+<!--      </div>-->
     </div>
 
     <!-- Orders list -->

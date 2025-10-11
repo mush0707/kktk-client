@@ -51,7 +51,78 @@ export const mainApi = {
     },
 }
 
-export const demandApi = {
+export const supplierDemandsApi = {
+    list: (params) => api.get('/suppliers/demands', {params}).then(r => r.data.data),
+    get(id) {
+        return api.get(`/suppliers/demands/${id}`).then(r => r.data.data)
+    },
+    onSatisfy(id) {
+        return api.patch(`/suppliers/demands/${id}/satisfy`).then(r => r.data.data)
+    },
+    distributeProduct(id, demandProductId, payload) {
+        return api.post(`/suppliers/demands/${id}/products/${demandProductId}/distribute`, payload).then(r => r.data.data)
+    },
+    reject(id, payload) {
+        return api.delete(`/suppliers/demands/${id}`, {
+            params: payload
+        }).then(r => r.data.data)
+    },
+    async finish(id:number){
+        const {data} = await api.patch(`/suppliers/demands/${id}/finish`);
+        return data?.data;
+    },
+    rejectProduct(id, productId, payload) {
+        return api.delete(`/suppliers/demands/${id}/products/${productId}`, {
+            params: payload
+        }).then(r => r.data.data)
+    },
+    rejectOffering(id, offeringId, payload) {
+        return api.delete(`/suppliers/demands/${id}/offerings/${offeringId}`, {
+            params: payload
+        }).then(r => r.data.data)
+    },
+    productList: (params) => api.get('/suppliers/demands/product-list', {params}).then(r => r.data.data),
+    offeringList: (params) => api.get('/suppliers/demands/offering-list', {params}).then(r => r.data.data),
+}
+export const demandsApi = {
+    list: (params) => api.get('/demands', {params}).then(r => r.data.data),
+    productList: (params) => api.get('/demands/products', {params}).then(r => r.data.data),
+    async cancel(id:number){
+        const {data} = await api.delete(`/demands/${id}`);
+        return data?.data;
+    },
+    async approve(id:number){
+        const {data} = await api.patch(`/demands/${id}/approve`);
+        return data?.data;
+    },
+    async takeOfferingInProgress(id:number, offeringId:number){
+        const {data} = await api.patch(`/demands/${id}/offerings/${offeringId}/in-progress`);
+        return data?.data;
+    },
+    async finishOffering(id:number, offeringId:number){
+        const {data} = await api.patch(`/demands/${id}/offerings/${offeringId}/finish`);
+        return data?.data;
+    },
+    async send(id:number){
+        const {data} = await api.patch(`/demands/${id}/send`);
+        return data?.data;
+    },
+    async get(id:number){
+        return api.get('/demands/'+id).then(r => r.data.data)
+    },
+    async save(payload:any){
+        const {data} = await api.post('/demands/', payload)
+        return data?.data
+    },
+    async update(demandId, payload:any){
+        const {data} = await api.post('/demands/'+demandId, payload)
+        return data?.data
+    },
+    availableProducts: (params) => api.get('/demands/active-order-products', {params}).then(r => r.data),
+    availableOfferings: (params) => api.get('/demands/active-order-offerings', {params}).then(r => r.data),
+}
+
+export const storageDemandApi = {
 
     async create(storage_id, payload) {
         const {data} = await api.post('/storages/' + storage_id + '/demand', payload)
@@ -176,14 +247,8 @@ export const purchasingApi = {
 }
 export const storagesApi = {
     getMatchedStoragePointsByProductTypeId: (productTypeId) => api.get('/storages/list-by-product-type/'+productTypeId).then(r => r.data),
+    getResidueByProductId: (storageId, productId) => api.get('/storages/'+storageId+'/residue/'+productId).then(r => r.data),
 
-}
-export const applicationMovementsApi = {
-    activeProductList: (params) => api.get('/suppliers/orders/movements/active-products', {params}).then(r => r.data),
-    async create(payload) {
-        const {data} = await api.post("/suppliers/orders/movements", payload);
-        return data;
-    },
 }
 export const interviewStageApi = {
     list: (params) => api.get('/interview-stages', {
@@ -301,6 +366,9 @@ export const purchasingOrdersApi = {
     getById(id) {
         return api.get(`/purchasing/orders/${id}`)
     },
+    show(id) {
+        return api.get(`/purchasing/orders/${id}/show`)
+    },
     getOrderContract(orderId, contractId, withTrashed = false) {
         return api.get(`/purchasing/orders/${orderId}/contracts/${contractId}`, {
             params: {
@@ -372,8 +440,22 @@ export const ordersApi = {
     get(id) {
         return api.get(`/suppliers/orders/${id}`).then(r => r.data.data)
     },
+    getStages(params) {
+        return api.get(`/suppliers/orders/stages`, {
+            params: params
+        }).then(r => r.data.data)
+    },
+    getStageFinishDocTypes() {
+        return api.get(`/suppliers/orders/stages/doc-types`).then(r => r.data.data)
+    },
     cancel(id, payload) {
         return api.delete(`/suppliers/orders/${id}`, payload).then(r => r.data)
+    },
+    onFinish(id) {
+        return api.patch(`/suppliers/orders/${id}/finish`).then(r => r.data)
+    },
+    onDecline(id) {
+        return api.delete(`/suppliers/orders/${id}/decline`).then(r => r.data)
     },
     deleteProductRow(id, productId) {
         return api.delete(`/suppliers/orders/${id}/products/${productId}`).then(r => r.data)
@@ -381,11 +463,22 @@ export const ordersApi = {
     deleteOfferingRow(id, offeringId) {
         return api.delete(`/suppliers/orders/${id}/offerings/${offeringId}`).then(r => r.data)
     },
+    attachCompletedDemandOfferings(orderOfferingStageId, orderOfferingId, payload) {
+        return api.patch(`/suppliers/orders/offerings/${orderOfferingId}/${orderOfferingStageId}/attach-with-demands`, payload).then(r => r.data)
+    },
+    updateOrderStageName: (id, stageId, payload) => api.patch(`/suppliers/orders/${id}/stages/${stageId}`, payload).then(r => r.data),
+    sendStageToStorage: (id) => api.post(`/suppliers/orders/stages/${id}/to-storage`).then(r => r.data),
+    distributeStageProductRow: (productStageId, payload) => api.patch(`/suppliers/orders/stages/${productStageId}/distribute`, payload).then(r => r.data),
+    finishStage: (id, payload) => api.post(`/suppliers/orders/stages/${id}`, payload).then(r => r.data),
     sendToApprove: (id) => api.patch(`/suppliers/orders/${id}/send-to-approve`).then(r => r.data),
     sendToPurchasing: (id) => api.patch(`/suppliers/orders/${id}/send-to-purchasing`).then(r => r.data),
 }
 
-
+export const storageEntriesApi = {
+    list: (id, params) => api.get(`/storages/entries/${id}`, {params}).then(r => r.data),
+    accept: (storageId, id) => api.patch(`/storages/entries/${storageId}/accept/${id}`).then(r => r.data),
+    confirm: (storageId,id) => api.patch(`/storages/entries/${storageId}/confirm/${id}`).then(r => r.data),
+}
 // ─────────────────────────────────────────────────────────────────────────────
 // Products (search for selector)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -443,14 +536,20 @@ export const warehouseDemandApi = {
         const {data} = await api.get(`/storages/demands/requests/${storage_id}/${demand_id}`);
         return data.data;
     },
+    async getExpectedArrivals(storage_id, payload) {
+        const {data} = await api.get(`/storages/${storage_id}/expected-arrivals`, {
+            params: payload
+        });
+        return data.data;
+    },
 
     // row-level
     async approve(storage_id, demand_id) { // RESERVE
         const {data} = await api.post(`/storages/demands/requests/${storage_id}/${demand_id}/approve`);
         return data;
     },
-    async reject(storage_id, demand_id) {
-        const {data} = await api.post(`/storages/demands/requests/${storage_id}/${demand_id}/reject`);
+    async reject(storage_id, demand_id, payload) {
+        const {data} = await api.post(`/storages/demands/requests/${storage_id}/${demand_id}/reject`, payload);
         return data;
     },
     async writeOff(storage_id, demand_id) { // FINAL CONSUMPTION + OUTPUT DOC
@@ -459,8 +558,8 @@ export const warehouseDemandApi = {
     },
 
     // item-level
-    async rejectItem(storage_id, demand_id, item_id) {
-        const {data} = await api.post(`/storages/demands/requests/${storage_id}/${demand_id}/items/${item_id}/reject`);
+    async rejectItem(storage_id, demand_id, item_id, payload) {
+        const {data} = await api.post(`/storages/demands/requests/${storage_id}/${demand_id}/items/${item_id}/reject`, payload);
         return data;
     },
 
@@ -469,7 +568,7 @@ export const warehouseDemandApi = {
             .then(r => r.data.data)
     },
     upsertItemCells(storage_id, demand_id, item_id, allocations) {
-        return api.post(`/storages/demands/requests/${storage_id}/${demand_id}/items/${item_id}/cells`, {allocations})
+        return api.post(`/storages/demands/requests/${storage_id}/${demand_id}/items/${item_id}/cells`, allocations)
             .then(r => r.data.data)
     },
 };
@@ -515,7 +614,7 @@ export const wmsApi = {
         return data.data
     },
     async getStaging(filter) {
-        const {data} = await api.get<StorageProduct[]>('/storages/entries', {
+        const {data} = await api.get<StorageProduct[]>('/storages/products', {
             params: {
                 storage_id: filter.storage_id,
                 status: filter.status,
