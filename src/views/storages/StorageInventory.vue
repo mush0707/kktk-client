@@ -24,7 +24,7 @@
           </li>
           <li aria-hidden="true" class="px-1">
             <svg class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M7.05 3.55a1 1 0 0 1 1.4 0l4.5 4.5a1 1 0 0 1 0 1.4լ-4.5 4.5a1 1 0 0 1-1.4-1.4L10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
+              <path d="M7.05 3.55a1 1 0 0 1 1.4 0l4.5 4.5a1 1 0 0 1 0 1.4l-4.5 4.5a1 1 0 0 1-1.4-1.4L10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
             </svg>
           </li>
           <li>
@@ -37,7 +37,7 @@
           </li>
           <li aria-hidden="true" class="px-1">
             <svg class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor">
-              <path d="M7.05 3.55a1 1 0 0 1 1.4 0լ4.5 4.5a1 1 0 0 1 0 1.4լ-4.5 4.5a1 1 0 0 1-1.4-1.4L10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
+              <path d="M7.05 3.55a1 1 0 0 1 1.4 0l4.5 4.5a1 1 0 0 1 0 1.4l-4.5 4.5a1 1 0 0 1-1.4-1.4L10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
             </svg>
           </li>
           <li>
@@ -130,13 +130,21 @@
 
             <td class="px-6 py-4 text-right">
               <div class="flex gap-2">
-                <button @click="openPlacementsForCell(r.cell_id)"
-                        class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                <button
+                    @click="openReservesForCell(r)"
+                    class="px-3 py-1 text-xs font-medium text-white bg-slate-700 rounded-md shadow hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500"
+                >
+                  Ռեզերվներ
+                </button>
+                <button
+                    @click="openPlacementsForCell(r.cell_id)"
+                    class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
                 >
                   Տեսնել տեղավորումները
                 </button>
-                <button @click="openTransfer(r)"
-                        class="px-3 py-1 text-xs font-medium text-white bg-amber-600 rounded-md shadow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                <button
+                    @click="openTransfer(r)"
+                    class="px-3 py-1 text-xs font-medium text-white bg-amber-600 rounded-md shadow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 >
                   Տեղափոխել
                 </button>
@@ -166,13 +174,13 @@
           <div class="text-sm text-gray-600">
             <p>{{ modal.row?.product_name }}</p>
             <div class="flex flex-wrap gap-1">
-                  <span
-                      v-for="c in characteristicsFromRow(modal.row)"
-                      :key="c.id ?? c.name"
-                      class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700"
-                  >
-                    {{ c.name }}
-                  </span>
+              <span
+                  v-for="c in characteristicsFromRow(modal.row)"
+                  :key="c.id ?? c.name"
+                  class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-700"
+              >
+                {{ c.name }}
+              </span>
               <span v-if="characteristicsFromRow(modal.row).length===0" class="text-[11px] text-gray-400">—</span>
             </div>
             Սկզբնակետ: <b>{{ modal.row?.cell_name }}</b>
@@ -255,7 +263,6 @@
                 :disabled="!canSubmit || modal.saving"
                 @click="doTransfer"
             >
-              <!-- փոքր loader -->
               <svg v-if="modal.saving" class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                 <path class="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4"/>
@@ -270,20 +277,31 @@
       </div>
     </div>
   </div>
+
+  <!-- Placements modal -->
   <CellPlacementsModal
       :open="placementsModal.open"
       :storage-id="storageId"
       :cell-id="placementsModal.cellId"
       @close="placementsModal.open=false"
   />
+
+  <!-- Reserves modal (same modal used by cell_id + optional product_id) -->
+  <ReserveListModal
+      :open="reserves.open"
+      :cell-id="reserves.cellId"
+      :product-id="reserves.productId"
+      @close="reserves.open=false"
+  />
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, computed, watch } from 'vue'
+import { onMounted, reactive, ref, computed, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { mainApi, wmsApi } from '@/api.js'
-import { nextTick } from 'vue'
 import CellPlacementsModal from "@/views/storages/modals/CellPlacementsModal.vue";
+import ReserveListModal from '@/views/storages/modals/ReserveListModal.vue'
+
 const route = useRoute()
 const storageId = Number(route.params.id)
 const storage = ref<any>(null)
@@ -297,11 +315,27 @@ const hierarchy = reactive({
 
 const rows = ref<any[]>([])
 const loading = ref(false)
+
+/* ───────── Reserves modal state ───────── */
+const reserves = reactive({
+  open: false,
+  cellId: 0 as number,
+  productId: undefined as number | undefined,
+})
+function openReservesForCell(row:any){
+  reserves.cellId = Number(row.cell_id)
+  reserves.productId = row?.product_id ? Number(row.product_id) : undefined
+  reserves.open = true
+}
+
+/* ───────── Placements modal ───────── */
 const placementsModal = reactive({ open:false, cellId:0 })
-function openPlacementsForCell(cellId){
+function openPlacementsForCell(cellId:number){
   placementsModal.cellId = Number(cellId)
   placementsModal.open = true
 }
+
+/* ───────── Filters/state ───────── */
 const f = reactive({
   storage_id: storageId,
   department_id: undefined as number|undefined,
@@ -387,7 +421,7 @@ async function reload(){
       shelf_id: f.shelf_id,
       cell_id: f.cell_id,
       search: f.q,
-      limit: f.limit, // required
+      limit: f.limit,
       offset: f.offset,
     })
     rows.value = Array.isArray(data) ? data : (data?.data ?? data?.rows ?? [])

@@ -28,7 +28,7 @@
             <template v-else>
               <div class="grid grid-cols-2 gap-3">
                 <div class="text-gray-500">Քանակ</div>
-                <div class="font-medium">{{ fmt((balance?.qty_available ?? 0) - (balance?.qty_reserved_dispatch ?? 0)) }} {{ $t(balance?.measure ?? 'piece') }}</div>
+                <div class="font-medium">{{ fmt((balance?.qty_available ?? 0) - (balance?.qty_reserved_dispatch ?? 0)- (balance?.qty_reserved_production ?? 0)) }} {{ $t(balance?.measure ?? 'piece') }}</div>
 
 <!--                <div class="text-gray-500">Վերջ. թարմացում</div>-->
 <!--                <div class="font-medium">{{ balance?.updated_at || '—' }}</div>-->

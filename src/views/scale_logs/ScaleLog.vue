@@ -60,7 +60,6 @@
               <template #no-options>
                 Արդյունք չի գտնվել
               </template>
-              <!-- Յուրաքանչյուր տարբերակի (option) ցուցադրում -->
               <template #option="{ option }">
                 <div class="flex items-center gap-2">
                   <span class="font-medium">{{ option.name }}</span>
@@ -79,7 +78,7 @@
                 @closed="onClosedDatePicker('date_start')"
                 :placeholder="$t('select_date')"
                 v-model="filter.date_start"
-            ></DatePicker>
+            />
           </div>
           <div class="flex flex-col gap-y-2">
             <label>{{ $t('to') }}</label>
@@ -92,7 +91,7 @@
                 @closed="onClosedDatePicker('date_end')"
                 :placeholder="$t('select_date')"
                 v-model="filter.date_end"
-            ></DatePicker>
+            />
           </div>
         </div>
       </div>
@@ -137,10 +136,10 @@
               {{ $t('container') }}
             </th>
             <th scope="col" class="px-6 py-3">
-              {{ $t('created') }}
+              Կշեռքի ժամեր
             </th>
             <th scope="col" class="px-6 py-3">
-              {{ $t('updated') }}
+              Թարմացվել է
             </th>
             <th scope="col" class="px-6 py-3">
             </th>
@@ -148,9 +147,18 @@
           </thead>
           <tbody>
           <tr v-for="log in logs.data"
+              :key="log.id"
               class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 border-gray-200">
             <td class="px-6 py-4">
-              {{ $t(log.status) }}
+              <div class="flex flex-col gap-y-2">
+                <p v-if="log.storage_id" class="flex flex-col gap-y-1 font-bold">
+                  <span>Դեպի՝ {{ log.storage.address }}</span>
+                  <span>Որպես՝ {{ log.product.name }}</span>
+                </p>
+                <p v-else>{{ $t(log.status) }}</p>
+
+              </div>
+
             </td>
             <td class="px-6 py-4">
               {{ log.license_plate }}
@@ -171,10 +179,14 @@
               {{ log.container }} {{ $t(log.measure) }}
             </td>
             <td class="px-6 py-4">
-              {{ log.time }}
+              <div class="flex flex-col gap-y-2">
+                <p>{{ log.time }}</p>
+                <p>{{ log.updated_time }}</p>
+              </div>
             </td>
             <td class="px-6 py-4">
-              {{ log.updated_time }}
+              <span :title="log.updated_at">{{ formatDateTime(log.updated_at) }}</span>
+              <span class="text-xs text-gray-400 ml-2">({{ fromNow(log.updated_at) }})</span>
             </td>
             <td class="px-6 py-4">
               <div v-if="!log.loading" class="flex flex-wrap gap-2">
@@ -191,22 +203,18 @@
                   </button>
                 </div>
                 <div class="flex flex-wrap gap-2" v-if="log.status === 'approved'">
-                  <button @click="switchStatus(log, 'to_production')"
+                  <button @click="openStorageModal(log)"
                           type="button"
                           class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">
-                    {{ $t('to_production') }}
+                    Դեպի պահեստ
                   </button>
-                  <button @click="switchStatus(log, 'send_to_cell')"
+                  <!-- UPDATED: send_to_cell now goes through prepareSendToCell -->
+                  <button @click="prepareSendToCell(log)"
                           type="button"
                           class="px-3 py-1 text-xs font-medium text-white bg-yellow-600 rounded-md shadow hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500">
                     {{ $t('send_to_cell') }}
                   </button>
                 </div>
-                <!--                <button v-if="truck.status === 'active'" @click="switchStatus(truck, 'broke')"-->
-                <!--                        type="button"-->
-                <!--                        class="px-3 py-1 text-xs font-medium text-white bg-green-600 rounded-md shadow hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500">-->
-                <!--                  {{ $t('broke') }}-->
-                <!--                </button>-->
               </div>
               <div v-else>
                 <button
@@ -231,13 +239,123 @@
       </div>
     </div>
   </div>
+
+  <!-- Sync modal -->
   <SyncScaleLogsModal v-if="showSyncScaleLogsModal"/>
+
+  <!-- Choose Storage modal -->
+  <div v-if="chooseStorage.open" class="fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/40" @click="closeChooseStorageModal"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b">
+        <h3 class="text-lg font-semibold">{{ $t('choose_storage','Ընտրել պահեստ') }}</h3>
+        <button class="p-2 rounded-lg hover:bg-gray-100" @click="closeChooseStorageModal" aria-label="Close">✕</button>
+      </div>
+      <div class="space-y-2">
+        <div class="text-sm text-gray-600">
+          Ընտրել բջիջ
+        </div>
+        <div>
+          <select v-model.number="chooseStorage.selectedId" class="w-full border border-gray-300 rounded-xl px-3 py-2">
+            <template v-for="s in storages" :key="s.id">
+              <option :value="s.id" v-if="s.cell">
+                {{ s.address || s.name || ('#'+s.id) }}
+              </option>
+            </template>
+          </select>
+        </div>
+      </div>
+      <div class="px-5 py-4 border-t flex justify-end gap-2">
+        <button class="px-4 py-2 rounded-xl border" @click="closeChooseStorageModal">{{ $t('cancel','Չեղարկել') }}</button>
+        <button
+            class="px-4 py-2 rounded-xl border bg-amber-900 text-white disabled:opacity-60"
+            :disabled="!chooseStorage.selectedId || chooseStorage.submitting"
+            @click="confirmSendToCell"
+        >
+          <svg v-if="chooseStorage.submitting" class="h-4 w-4 animate-spin inline-block mr-2" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4"/>
+          </svg>
+          <span>{{ $t('continue','Շարունակել') }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div v-if="toStorageModal.open" class="fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/40" @click="closeToStorageModal"></div>
+    <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-2xl shadow-xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b">
+        <h3 class="text-lg font-semibold">Դեպի պահեստ</h3>
+        <button class="p-2 rounded-lg hover:bg-gray-100" @click="closeToStorageModal" aria-label="Close">✕</button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="flex flex-col gap-y-2">
+          <label class="text-sm text-gray-600">
+            Ընտրել ապրանքը <span class="text-rose-700">*</span>
+          </label>
+          <div class="flex flex-col justify-end gap-y-2">
+            <VueSelect
+                v-model="toStorageModal.product_id"
+                :loading="loading"
+                :get-option-label="o => o.name"
+                :get-option-value="o => o.id"
+                :is-multi="false"
+                :options="production_products"
+                placeholder="Ընտրել ապրանք"
+                :noResults="'Արդյունք չի գտնվել'"
+            >
+              <template #no-options>
+                Արդյունք չի գտնվել
+              </template>
+              <template #option="{ option }">
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">{{ option.name }}</span>
+                </div>
+              </template>
+            </VueSelect>
+          </div>
+        </div>
+        <div class="flex flex-col gap-y-2">
+          <label class="text-sm text-gray-600">
+            Ընտրել պահեստ <span class="text-rose-700">*</span>
+          </label>
+          <div>
+            <select v-model.number="toStorageModal.selectedId" class="w-full border border-gray-300 rounded-xl px-3 py-2">
+              <template v-for="s in storages" :key="s.id">
+                <option :value="s.id" v-if="s.industrial">
+                  {{ s.address || s.name || ('#'+s.id) }}
+                </option>
+              </template>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="px-5 py-4 border-t flex justify-end gap-2">
+        <button class="px-4 py-2 rounded-xl border" @click="closeChooseStorageModal">{{ $t('cancel','Չեղարկել') }}</button>
+        <button
+            class="px-4 py-2 rounded-xl border bg-emerald-900 text-white disabled:opacity-60"
+            :disabled="!toStorageModal.selectedId || !toStorageModal.product_id || toStorageModal.submitting"
+            @click="confirmToStorage"
+        >
+          <svg v-if="toStorageModal.submitting" class="h-4 w-4 animate-spin inline-block mr-2" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" d="M4 12a8 8 0 018-8" stroke="currentColor" stroke-width="4"/>
+          </svg>
+          <span>{{ $t('continue','Շարունակել') }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
+
 <script>
 import SyncScaleLogsModal from "@/views/scale_logs/modals/SyncScaleLogsModal.vue";
 import api from "@/utils/api.js";
 import {useToast} from "vue-toastification";
 import VueSelect from "vue3-select-component";
+import {productsApi, wmsApi} from "@/api.js";
+import { formatDateTime, fromNow } from '@/utils/dateFormat'
 
 const toast = useToast();
 export default {
@@ -265,7 +383,23 @@ export default {
         date_start: null,
         date_end: null
       },
-      loading: false
+      loading: false,
+
+      storages: [],
+      production_products: [],
+      chooseStorage: {
+        open: false,
+        selectedId: null,
+        submitting: false,
+        log: null, // the log we are processing
+      },
+      toStorageModal: {
+        open: false,
+        selectedId: null,
+        product_id: null,
+        submitting: false,
+        log: null, // the log we are processing
+      },
     }
   },
   watch: {
@@ -287,6 +421,8 @@ export default {
     }
   },
   methods: {
+    formatDateTime,
+    fromNow,
     syncScaleLogsFromProvider() {
       this.showSyncScaleLogsModal = true;
     },
@@ -310,7 +446,28 @@ export default {
       }).catch((response) => {
       })
     },
+    openStorageModal(log) {
+      const list = this.storages.filter((storage) => {
+        if(!storage.cell) {
+          return storage;
+        }
+      });
+      if (list.length === 0) {
+        log.loading = false;
+        toast.error('Հասանելի արտադրամասեր չկան');
+        return;
+      }
+
+      this.toStorageModal.log = log;
+      this.toStorageModal.open = true;
+    },
+
+    // Generic status switch (unchanged for most statuses)
     async switchStatus(log, status) {
+      if (status === 'send_to_cell') {
+        // Route through the new flow
+        return this.prepareSendToCell(log);
+      }
       if (confirm(this.$t('are_you_sure'))) {
         log.loading = true;
         await api.patch("scale_logs/" + log.id + "/" + status).then((response) => {
@@ -322,6 +479,106 @@ export default {
         })
       }
     },
+    async getStorages() {
+      const res = await wmsApi.getStorages({ is_active: 1 });
+      this.storages = Array.isArray(res?.data) ? res.data : (res ?? []);
+    },
+    async getProductionProducts() {
+      const res = await productsApi.search({ industrial: 1, limit: 150 });
+      this.production_products = Array.isArray(res?.data) ? res.data : (res ?? []);
+    },
+    // NEW: prepare send_to_cell, decide auto vs. modal
+    async prepareSendToCell(log) {
+      const list = this.storages.filter((storage) => {
+        if(storage.cell) {
+          return storage;
+        }
+      });
+      if (list.length === 0) {
+        log.loading = false;
+        toast.error(this.$t('no_storages_available','Հասանելի պահեստներ չկան'));
+        return;
+      }
+
+      if (list.length === 1) {
+        // Auto-send directly with the single storage id
+        const sid = Number(list[0].id);
+        await this.doSendToCell(log, sid);
+        return;
+      }
+
+      // Multiple: open modal to choose
+      this.chooseStorage.log = log;
+      this.chooseStorage.selectedId = Number(list[0].id);
+      this.chooseStorage.open = true;
+      log.loading = false; // free row actions while modal is open
+    },
+
+    async confirmSendToCell() {
+      if (!this.chooseStorage.selectedId || !this.chooseStorage.log) return;
+      this.chooseStorage.submitting = true;
+      await this.doSendToCell(this.chooseStorage.log, Number(this.chooseStorage.selectedId));
+      this.chooseStorage.submitting = false;
+      this.closeChooseStorageModal();
+    },
+
+    async confirmToStorage() {
+      if (!this.toStorageModal.selectedId || !this.toStorageModal.product_id || !this.toStorageModal.log) return;
+      this.toStorageModal.submitting = true;
+      await this.doToStorage(this.toStorageModal.log, Number(this.toStorageModal.selectedId), this.toStorageModal.product_id ? Number(this.toStorageModal.product_id) : null);
+      this.toStorageModal.submitting = false;
+      this.closeToStorageModal();
+    },
+
+    // NEW: close modal
+    closeChooseStorageModal() {
+      this.chooseStorage.open = false;
+      this.chooseStorage.selectedId = null;
+      this.chooseStorage.log = null;
+    },
+    closeToStorageModal() {
+      this.toStorageModal.open = false;
+      this.toStorageModal.selectedId = null;
+      this.toStorageModal.product_id = null;
+      this.toStorageModal.log = null;
+    },
+
+    // NEW: actually call backend for send_to_cell with storage_id payload
+    async doSendToCell(log, storageId) {
+      try {
+        // (Optional) confirm prompt; remove if not desired
+        if (!confirm(this.$t('are_you_sure'))) return;
+
+        log.loading = true;
+        await api.patch(`scale_logs/${log.id}/send_to_cell/${storageId}`, { storage_id: storageId })
+            .then(() => {
+              // You can set a new status if API returns it; here we assume success -> maybe keep 'approved' or switch
+              log.status = 'send_to_cell';
+              toast.success(this.$t('status_updated_successfully'));
+            })
+            .catch(() => {})
+            .finally(() => { log.loading = false; });
+      } catch (e) {
+        log.loading = false;
+      }
+    },
+    async doToStorage(log, storageId, productId) {
+      try {
+        // (Optional) confirm prompt; remove if not desired
+        if (!confirm(this.$t('are_you_sure'))) return;
+        log.loading = true;
+        await api.patch(`scale_logs/${log.id}/to_storage`, { product_id: productId, storage_id: storageId })
+            .then(() => {
+              log.status = 'to_storage';
+              toast.success(this.$t('status_updated_successfully'));
+            })
+            .catch(() => {})
+            .finally(() => { log.loading = false; });
+      } catch (e) {
+        log.loading = false;
+      }
+    },
+
     async list() {
       await api.get("scale_logs", {
         params: {
@@ -380,6 +637,10 @@ export default {
   mounted() {
     this.suppliers();
     this.list();
+    this.getStorages();
+    this.getProductionProducts();
+    // Optional eager load of storages; commented to keep lazy:
+    // this.fetchStorages();
   }
 }
 </script>

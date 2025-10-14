@@ -347,5 +347,9 @@
   "send_to_storage": "Ուղարկված պահեստ",
   "entries": "Մուտքեր",
   "in_storage": "Պահեստում է",
-  "finished": "Ավարտված"
+  "finished": "Ավարտված",
+  "to_storage": "Դեպի պահեստ",
+  "open": "Բաց",
+  "on_hold": "Կանգնեցված",
+  "as_waste": "Որպես աղբ"
 }

@@ -39,11 +39,11 @@
           <!--          <p class="text-sm text-gray-500">storage_products · նոր արտադրված ապրանք</p>-->
         </RouterLink>
         <RouterLink :to="'/storages/'+storage?.id+'/staging'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
-          <p class="font-semibold">Ժամանակավոր պահեստ</p>
+          <p class="font-semibold">Ապրանքացանկ</p>
 <!--          <p class="text-sm text-gray-500">storage_products · նոր արտադրված ապրանք</p>-->
         </RouterLink>
         <RouterLink to="/wms/allocations" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
-          <p class="font-semibold">Պլանավորումներ</p>
+          <p class="font-semibold">Պատվերներ</p>
 <!--          <p class="text-sm text-gray-500">place / dispatch · storage_staging_allocations</p>-->
         </RouterLink>
         <RouterLink

@@ -182,7 +182,7 @@ const form = ref({ qty: 0 })
 const err = ref('')
 const loading = ref(false)
 
-const maxQty = computed(() => Number(props.storageProduct?.qty_available || 0) - Number(props.storageProduct?.qty_reserved_place || 0))
+const maxQty = computed(() => Number(props.storageProduct?.qty_available || 0) - Number(props.storageProduct?.qty_reserved_place || 0) - Number(props.storageProduct?.qty_reserved_production || 0))
 
 // product info (from staging row)
 const p = computed(() => props.storageProduct?.product || null)

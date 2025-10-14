@@ -42,6 +42,11 @@
                            class="px-3 py-1 text-xs font-medium text-white bg-amber-600 rounded-md shadow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
                 {{ $t('details') }}
               </router-link>
+              <router-link :to="'/storages/cells/'+storage.id"
+                           type="button" v-else
+                           class="px-3 py-1 text-xs font-medium text-white bg-amber-600 rounded-md shadow hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500">
+                {{ $t('details') }}
+              </router-link>
             </div>
           </td>
         </tr>
@@ -68,7 +73,7 @@ export default defineComponent({
   methods: {
     async list() {
       try {
-        const response = await api.get("storages", { params: { cell: 0, is_active: 1 } })
+        const response = await api.get("storages", { params: { is_active: 1 } })
         this.storages = response.data.data || []
 
         // auto-navigate when exactly one storage (and it's not a cell)

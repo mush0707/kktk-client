@@ -6,7 +6,7 @@ export type Storage = { id: ID; address: string; industrial: boolean };
 export type StorageProduct = {
     id: ID; storage_id: ID; product_id: ID; product?: Product;
     batch_no?: string | null; serial_no?: string | null;
-    qty_available: number; qty_reserved_place: number; qty_reserved_dispatch: number;
+    qty_available: number;qty_reserved_production: number; qty_reserved_place: number; qty_reserved_dispatch: number;
     manufacturing_order_id?: ID | null;
 };
 
@@ -387,6 +387,8 @@ export const ordersApi = {
 export const storageEntriesApi = {
     list: (id, params) => api.get(`/storages/entries/${id}`, {params}).then(r => r.data),
     accept: (storageId, id) => api.patch(`/storages/entries/${storageId}/accept/${id}`).then(r => r.data),
+    storeProductionOrder: (storageId, id) => api.patch(`/storages/entries/${storageId}/create-production-order/${id}`).then(r => r.data),
+    sendToWorkshop: (storageId, payload) => api.patch(`/storages/entries/${storageId}/send-to-production`, payload).then(r => r.data),
     confirm: (storageId,id) => api.patch(`/storages/entries/${storageId}/confirm/${id}`).then(r => r.data),
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -501,6 +503,12 @@ export const wmsApi = {
         const {data} = await api.get(`/storages/${storage_id}/hierarchy`);
         return data.data; // { departments:[], sections:[], shelves:[], cells:[] }
     },
+    async getReserves(payload) {
+        const {data} = await api.get(`/storages/reserves`, {
+            params: payload
+        });
+        return data.data; // { departments:[], sections:[], shelves:[], cells:[] }
+    },
     async getPlaceTree(storage_id: number, product_id: number) {
         // վերադարձնում է հիերարխիկ ծառ՝ departments→sections→shelves→cells,
         // արդեն զտված «ԿԱՐԵԼԻ Է» կանոններով
@@ -516,7 +524,7 @@ export const wmsApi = {
         return data.data
     },
     async getProducts(q = '') {
-        const {data} = await api.get<Product[]>('/products', {params: {q}});
+        const {data} = await api.get<Product[]>('/products', {params: {search: q}});
         return data.data;
     },
     async placeToCell(storage_id: number, storage_product_id: number, cell_id: number, qty: number) {
@@ -576,6 +584,10 @@ export const wmsApi = {
         const {data} = await api.post(`/storages/cells/placements/${storage_id}/${placement_id}/cancel`)
         return data
     },
+    async cancelReserve(id) {
+        const {data} = await api.delete(`/storages/reserves/${id}`)
+        return data
+    },
     async getPendingPlacementsCount(storage_id) {
         const {data} = await api.get(`/storages/${storage_id}/placements`, {
             params: {status: 'pending', limit: 50000},
@@ -593,6 +605,7 @@ export const wmsApi = {
         const {data} = await api.post(`/storages/cells/${storage_id}/transfer`, payload);
         return data.data;
     },
+    sendToWorkshop: (storageId, payload) => api.patch(`/storages/products/${storageId}/send-to-production`, payload).then(r => r.data),
 };
 
 
@@ -689,5 +702,220 @@ export const mfgApi = {
     },
     async deleteMOOutput(storageId: number, moId: number, outputId: number) {
         await api.delete(`/storages/manufacturing_orders/${storageId}/${moId}/outputs/${outputId}`)
+    },
+    async rawWriteoffBatch(storageId: number, payload) {
+        await api.post(`/storages/manufacturing/products/${storageId}/outputs`, payload)
+    },
+    async rawRecycleBatch(storageId: number, payload) {
+        await api.post(`/storages/manufacturing/products/${storageId}/to-recycle`, {
+            materials: payload.items
+        })
+    },
+
+    getRawMaterials(storageId, params) {
+        return api
+            .get(`/storages/manufacturing/products/${storageId}`, { params })
+            .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
+    },
+    getRawReserves(storageId, itemId, params) {
+        return api
+            .get(`/storages/manufacturing/products/${storageId}/${itemId}/reserves`, { params })
+            .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
+    },
+    getOutputs(storageId, params) {
+        return api
+            .get(`/storages/manufacturing/outputs/${storageId}`, { params })
+            .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
+    },
+    getOutputById(storageId, itemId) {
+        return api
+            .get(`/storages/manufacturing/outputs/${storageId}/${itemId}`)
+            .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
+    },
+    async approveOutput(storageId, itemId) {
+        await api.post(`/storages/manufacturing/outputs/${storageId}/${itemId}/approve`)
+    },
+    async writeoffOutput(storageId, itemId) {
+        await api.post(`/storages/manufacturing/outputs/${storageId}/${itemId}/written-off`)
+    },
+    async cancelOutput(storageId, itemId) {
+        await api.delete(`/storages/manufacturing/outputs/${storageId}/${itemId}`)
+    },
+    async cancelOutputProduct(storageId, itemId, productId) {
+        await api.delete(`/storages/manufacturing/outputs/${storageId}/${itemId}/products/${productId}`)
+    },
+}
+
+
+export const mfgEntriesApi = {
+    list(storageId, params) {
+        return api
+            .get(`/storages/manufacturing/entries/${storageId}`, { params })
+            .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
+    },
+    getById(storageId, entryId) {
+        return api
+            .get(`/storages/manufacturing/entries/${storageId}/${entryId}`)
+            .then(r => r.data?.data ?? r.data)
+    },
+    cancelProduct(storageId, entryId, entryProductId) {
+        return api.delete(`/storages/manufacturing/entries/${storageId}/${entryId}/products/${entryProductId}`)
+    },
+    cancel(storageId, entryId) {
+        return api.delete(`/storages/manufacturing/entries/${storageId}/${entryId}`)
+    },
+    approve(storageId, entryId, payload) {
+        return api.post(`/storages/manufacturing/entries/${storageId}/${entryId}/approve`, payload)
+    },
+}
+
+export const recycleOutputsApi = {
+    getOutputs(storageId, params) {
+        return api
+            .get(`/storages/manufacturing/recycle/outputs/${storageId}`, { params })
+            .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
+    },
+    getOutputById(storageId, itemId) {
+        return api
+            .get(`/storages/manufacturing/recycle/outputs/${storageId}/${itemId}`)
+            .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
+    },
+    async approveOutput(storageId, itemId) {
+        await api.post(`/storages/manufacturing/recycle/outputs/${storageId}/${itemId}/approve`)
+    },
+    async writeoffOutput(storageId, itemId) {
+        await api.post(`/storages/manufacturing/recycle/outputs/${storageId}/${itemId}/written-off`)
+    },
+    async cancelOutput(storageId, itemId) {
+        await api.delete(`/storages/manufacturing/recycle/outputs/${storageId}/${itemId}`)
+    },
+    async cancelOutputProduct(storageId, itemId, productId) {
+        await api.delete(`/storages/manufacturing/recycle/outputs/${storageId}/${itemId}/products/${productId}`)
+    },
+}
+export const recycleEntriesApi = {
+    async list(storageId, { limit = 30, offset = 0, search, status } = {}) {
+        const { data } = await api.get(`/storages/manufacturing/recycle/entries/${storageId}`, {
+            params: { limit, offset, search, status }
+        })
+        // backend returns a collection; normalize to array
+        return Array.isArray(data) ? data : (data?.data ?? [])
+    },
+
+    async getById(storageId, entryId) {
+        const { data } = await api.get(`/storages/manufacturing/recycle/entries/${storageId}/${entryId}`)
+        return data?.data ?? data
+    },
+
+    async approve(storageId, entryId) {
+        await api.post(`/storages/manufacturing/recycle/entries/${storageId}/${entryId}/approve`)
+    },
+
+    async cancel(storageId, entryId) {
+        await api.delete(`/storages/manufacturing/recycle/entries/${storageId}/${entryId}/`)
+    },
+
+    async cancelItem(storageId, entryId, itemId) {
+        await api.delete(`/storages/manufacturing/recycle/entries/${storageId}/${entryId}/items/${itemId}`)
+    },
+}
+
+export const recyclingMaterialsApi = {
+    // GET /manufacturing/recycle/materials/{storage_id}
+    list(storageId, params = {}) {
+        const { limit = 30, offset = 0, include, search } = params
+        return api
+            .get(`/storages/manufacturing/recycle/materials/${storageId}`, {
+                params: { limit, offset, include, search },
+            })
+            .then((r) => r.data?.data ?? r.data)
+    },
+
+    // POST /manufacturing/recycle/materials/{storage_id}/to-process
+    // payload: { items: [{ material_id, qty }] }
+    toProcess(storageId, payload) {
+        return api
+            .post(`/storages/manufacturing/recycle/materials/${storageId}/to-process`, payload)
+            .then((r) => r.data?.data ?? r.data)
+    },
+
+    // POST /manufacturing/recycle/materials/{storage_id}/outputs
+    // payload: { direction: 'to_storage'|'output'|'as_waste', items: [{ material_id, qty }] }
+    output(storageId, payload) {
+        return api
+            .post(`/storages/manufacturing/recycle/materials/${storageId}/outputs`, payload)
+            .then((r) => r.data?.data ?? r.data)
+    },
+}
+
+export const recyclingProduceApi = {
+    list(storageId, { limit = 30, offset = 0, search, status } = {}) {
+        return api
+            .get(`/storages/manufacturing/produces/${storageId}`, {
+                params: { limit, offset, search, status },
+            })
+            .then(r => r.data);
+    },
+
+    create(storageId, payload) {
+        return api
+            .post(`/storages/manufacturing/produces/${storageId}`, payload)
+            .then(r => r.data);
+    },
+
+    activate(storageId, produceId) {
+        return api.patch(
+            `/storages/manufacturing/produces/${storageId}/${produceId}/activate`
+        );
+    },
+    addExisting(storageId, payload) {
+        return api.post(
+            `/storages/manufacturing/produces/${storageId}/attach`, payload
+        );
+    },
+
+    onHold(storageId, produceId) {
+        return api.patch(
+            `/storages/manufacturing/produces/${storageId}/${produceId}/on-hold`
+        );
+    },
+
+    async getProducts(payload) {
+        const {data} = await api.get<Product[]>('/products', {params: payload});
+        return data.data;
+    },
+
+    output(storageId, payload) {
+        return api
+            .post(`/storages/manufacturing/produces/${storageId}/outputs`, payload)
+            .then((r) => r.data?.data ?? r.data)
+    },
+};
+
+export const recyclingProcessApi = {
+
+    list(storageId, params = {}) {
+        const { search, limit = 20, offset = 0 } = params
+        return api.get(`/storages/manufacturing/recycle/processes/${storageId}`, {
+            params: { search, limit, offset },
+        })
+    },
+
+
+    prefillLast(storageId, produceId) {
+        return api.get(
+            `/storages/manufacturing/recycle/processes/${storageId}/prefill/${produceId}`
+        )
+    },
+
+    create(storageId, payload) {
+        return api.post(`/storages/manufacturing/recycle/processes/${storageId}`, payload)
+    },
+
+    approve(storageId, recycleProduceId) {
+        return api.patch(`/storages/manufacturing/recycle/processes/${storageId}/${recycleProduceId}/approve`)
+    },
+    cancel(storageId, recycleProduceId) {
+        return api.delete(`/storages/manufacturing/recycle/processes/${storageId}/${recycleProduceId}`)
     },
 }
