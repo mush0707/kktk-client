@@ -250,11 +250,6 @@ export const storagesApi = {
     getResidueByProductId: (storageId, productId) => api.get('/storages/'+storageId+'/residue/'+productId).then(r => r.data),
 
 }
-export const storagesApi = {
-    getMatchedStoragePointsByProductTypeId: (productTypeId) => api.get('/storages/list-by-product-type/'+productTypeId).then(r => r.data),
-    getResidueByProductId: (storageId, productId) => api.get('/storages/'+storageId+'/residue/'+productId).then(r => r.data),
-
-}
 export const interviewStageApi = {
     list: (params) => api.get('/interview-stages', {
         params: params

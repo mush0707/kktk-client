@@ -38,15 +38,6 @@
         >
           <p class="font-semibold">Արձակուրդների հայտեր (բոլորը)</p>
         </RouterLink>
-
-        <!-- My leave requests: show only if CAN employee.view -->
-        <RouterLink
-            v-if="showMyLeave && auth?.user?.employee?.id"
-            :to="'/hr/my/leave-requests'"
-            class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow"
-        >
-          <p class="font-semibold">Իմ արձակուրդների հայտերը</p>
-        </RouterLink>
       </div>
     </div>
   </div>
@@ -65,7 +56,8 @@ const auth = useAuth()
     auth.roles?.includes?.('super-admin')
 
 const canEmployeeView = computed(() => can('employee.view'))
-const canHrManage = computed(() => can('hr.manage'))
+
+const canHrManage = computed(() => can('hr.vacancies.view'))
 
 const showMyLeave = computed(() => canEmployeeView.value)
 const showAdminLeave = computed(() => canHrManage.value && !canEmployeeView.value)
