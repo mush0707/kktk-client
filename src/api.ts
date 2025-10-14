@@ -250,6 +250,104 @@ export const storagesApi = {
     getResidueByProductId: (storageId, productId) => api.get('/storages/'+storageId+'/residue/'+productId).then(r => r.data),
 
 }
+export const storagesApi = {
+    getMatchedStoragePointsByProductTypeId: (productTypeId) => api.get('/storages/list-by-product-type/'+productTypeId).then(r => r.data),
+    getResidueByProductId: (storageId, productId) => api.get('/storages/'+storageId+'/residue/'+productId).then(r => r.data),
+
+}
+export const interviewStageApi = {
+    list: (params) => api.get('/interview-stages', {
+        params: params
+    }).then(r => r.data),
+    get: (id) => api.get('/interview-stages/' + id).then(r => r.data),
+    delete: (id) => api.delete('/interview-stages/' + id).then(r => r.data),
+    async create(payload) {
+        const {data} = await api.post("/interview-stages", payload);
+        return data;
+    },
+    update(id, payload) {
+        return api.patch(`/interview-stages/${id}`, payload).then(r => r.data)
+    },
+}
+
+export const rolePositionApi = {
+    list: (params) => api.get('/role-positions', {
+        params: params
+    }).then(r => r.data),
+    get: (id) => api.get('/interview-stages/' + id).then(r => r.data),
+    delete: (id) => api.delete('/interview-stages/' + id).then(r => r.data),
+    async create(payload) {
+        const {data} = await api.post("/interview-stages", payload);
+        return data;
+    },
+    updateStages(id: number, payload: any) {
+        return api.patch(`/role-positions/${id}/stages`, payload).then(r => r.data)
+    },
+
+}
+
+export const vacancyApi = {
+    list: (params: any) => api.get('/vacancies', {
+        params: params
+    }).then(r => r.data),
+
+    async create(payload) {
+        const {data} = await api.post("/vacancies", payload);
+        return data;
+    },
+    update(id, payload) {
+        return api.patch(`/vacancies/${id}`, payload).then(r => r.data)
+    },
+
+    approveStatus(id: number) {
+        return api.patch(`/vacancies/${id}/approve`).then(r => r.data)
+    },
+
+    cancelStatus(id: number) {
+        return api.patch(`/vacancies/${id}/cancel`).then(r => r.data)
+    },
+
+    closeStatus(id: number) {
+        return api.patch(`/vacancies/${id}/close`).then(r => r.data)
+    },
+
+    addCadidate(id: number, payload: { candidate_id: number, department_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/add`, payload).then(r => r.data)
+    },
+
+    removeCadidate(id: number, cadidateId: number) {
+        return api.post(`/vacancies/${id}/candidate/remove`, {candidate_id: cadidateId}).then(r => r.data)
+    },
+
+    hireCandidate(id: number, payload: { candidate_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/hire`, payload);
+    },
+
+    rejectCandidate(id: number, payload: { candidate_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/reject`, payload);
+    },
+
+    setCandidateStage(id: number, payload: { candidate_id: number, stage_id: number }) {
+        return api.post(`/vacancies/${id}/candidate/stage`, payload);
+    }
+}
+
+export const candidateApi = {
+    list: (params: any) => api.get('/candidates', {
+        params: params
+    }).then(r => r.data),
+
+    create: (payload: any) => api.post('/candidates', payload).then(r => r.data),
+    update: (id: number, payload: any) => api.post(`/candidates/${id}`, payload).then(r => r.data),
+    getDocTypes: () => api.get('/candidates/doc-types').then(r => r.data),
+    archiveDocument: (id: number, docId: number) => {
+        api.patch(`/candidates/${id}/documents/${docId}`).then(r => r.data)
+    },
+
+    updateDocuments: (id: number, payload: any) => api.post(`/candidates/${id}/documents`, payload).then(r => r.data),
+    getById: (id: number) => api.get(`/candidates/${id}`).then(r => r.data),
+}
+
 export const purchasingPartnerApi = {
     list: (params) => api.get('/purchasing/partners', {params}).then(r => r.data),
     get: (id) => api.get('/purchasing/partners/'+id).then(r => r.data),
@@ -259,7 +357,6 @@ export const purchasingPartnerApi = {
         return data;
     },
     update(id, payload) {
-        console.log(payload);
         return api.post(`/purchasing/partners/${id}`, payload).then(r => r.data)
     },
     assignManager: (id, managerId) => api.patch(`/purchasing/partners/${id}/${managerId}`).then(r => r.data),
@@ -313,12 +410,31 @@ export const purchasingOrdersApi = {
     rejectProduct(id, productId) {
         return api.delete(`/purchasing/orders/${id}/products/${productId}`)
     },
-    rejectOffering(id, offeringId) {
-        return api.delete(`/purchasing/orders/${id}/offerings/${productId}`)
+
+    // ուղղում՝ offeringId
+    rejectOffering(orderId, offeringId) {
+        return api.delete(`/purchasing/orders/${orderId}/offerings/${offeringId}`)
+    },
+
+    // contracts
+    storeContract(orderId, formData /* multipart */) {
+        // formData: partner_id, start_date, finished_date, documents[0][type_id], documents[0][documents]...
+        return api.post(`/purchasing/orders/${orderId}/contracts`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
+    },
+    updateContractDocument(orderId, contractId, formData /* multipart */) {
+        // formData: type_id, documents[]
+        return api.post(`/purchasing/orders/${orderId}/contracts/${contractId}/documents`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        })
     },
     // ուղղում՝ offeringId
     rejectOffering(orderId, offeringId) {
         return api.delete(`/purchasing/orders/${orderId}/offerings/${offeringId}`)
+    },
+    getActiveOrderDocTypes() {
+        return api.get('/purchasing/active-orders/doc-types')
     },
 
     // contracts
@@ -820,6 +936,178 @@ export const recycleEntriesApi = {
     },
 }
 
+export const employeesApi = {
+    list: (params) => api.get('/employees/staff-users', {params}).then(r => r.data),
+    async create(payload) {
+        const {data} = await api.post("/employees", payload);
+        return data;
+    }, async update(id, payload) {
+        const {data} = await api.post(`/employees/${id}`, payload, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        });
+
+        return data;
+    },
+    getDocTypes: () => api.get('/employees/doc-types').then(r => r.data),
+    async listDocuments(employeeId) {
+        const {data} = await api.get(`/employees/${employeeId}/documents`)
+        return data.data
+    },
+    async uploadDocument(employeeId, formData) {
+        const {data} = await api.post(`/employees/${employeeId}/documents`, formData, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        })
+        return data.data
+    },
+    async show(id: number) {
+        const {data} = await api.get(`/employees/${id}/`)
+        return data.data
+    },
+    async userSendActivate(id: number, payload: object) {
+        const {data} = await api.post(`/employees/${id}/activate`, payload)
+        return data.data
+    },
+
+    async dismissEmployee(id: number) {
+        const {data} = await api.post(`/employees/${id}/dismiss`)
+        return data.data
+    },
+    async transfer(id: number, role_position_id: number) {
+        const {data} = await api.post(`/employees/${id}/transfer`, {role_position_id})
+        return data.data
+    },
+    async getLeaveBalances(id: number) {
+        const {data} = await api.get(`/employees/${id}/leave-balances`)
+        return data
+    },
+    async getLiveTypes(id: number) {
+        const {data} = await api.get(`/employees/${id}/leave-types`)
+        return data
+    }
+}
+
+export async function activateAccount(payload: {
+    email: string,
+    token: string,
+    password: string,
+    password_confirmation: string
+}) {
+    return api.post('/account/activate', payload);
+}
+
+export const contractsApi = {
+    async create(payload: object) {
+        const {data} = await api.post("/employee-contracts", payload, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        });
+        return data;
+    },
+    async updateLeaveTypes(id: number, payload: object) {
+        const {data} = await api.patch(`/employee-contracts/${id}/leave-types`, payload);
+        return data;
+    },
+    getDocTypes: () => api.get('/employee-contracts/doc-types').then(r => r.data),
+    async uploadDocument(contractId: number, formData: any) {
+        const {data} = await api.post(`/employee-contracts/${contractId}/documents`, formData, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        })
+        return data.data
+    },
+}
+
+export const leaveTypeApi = {
+    list: () => api.get('/leave-types').then(r => r.data),
+    async create(payload: object) {
+        const {data} = await api.post("/leave-types", payload);
+        return data;
+    },
+    update(id: number, payload: object) {
+        return api.patch(`/leave-types/${id}`, payload).then(r => r.data)
+    },
+}
+export const leaveRequestApi = {
+    list: (params) => api.get('/leave-requests', {params}).then(r => r.data),
+    userList: (id, params) => api.get(`/leave-requests/list/${id}`, {params}).then(r => r.data),
+    approveStatus(id: number) {
+        return api.patch(`/leave-requests/${id}/approve`).then(r => r.data)
+    },
+    async create(payload: object) {
+        const {data} = await api.post("/leave-requests", payload);
+        return data;
+    },
+    cancelStatus(id: number) {
+        return api.post(`/leave-requests/${id}/cancel`).then(r => r.data)
+    },
+    rejectStatus(id: number, data: object) {
+        return api.post(`/leave-requests/${id}/reject`, data).then(r => r.data)
+    }
+}
+
+export const payrollSettingApi = {
+    getData: () => api.get('/payroll-settings').then(r => r.data),
+    update(id: number, payload: object) {
+        return api.patch(`/payroll-settings/${id}`, payload).then(r => r.data)
+    },
+}
+
+function getFilenameFromDisposition(disposition?: string, fallback = 'SRC_Payroll_Upload.xlsx') {
+    if (!disposition) return fallback;
+    // attachment; filename="SRC_Payroll_Upload_20251013_1605.xlsx"
+    // կամ filename*=UTF-8''SRC_Payroll_Upload_20251013_1605.xlsx
+    const matchStar = /filename\*=(?:UTF-8'')?("?)([^";]+)\1/i.exec(disposition);
+    if (matchStar?.[2]) return decodeURIComponent(matchStar[2]);
+    const match = /filename="?([^";]+)"?/i.exec(disposition);
+    if (match?.[1]) return match[1];
+    return fallback;
+}
+export const payrollApi = {
+    getUnpaid(params: any) {
+        return api.get('/payrolls/unpaid', {
+            params: params
+        }).then(r => r.data);
+    },
+
+
+    getPaid(params: any) {
+        return api.get('/payrolls/paid', {
+            params: params
+        }).then(r => r.data);
+    },
+
+
+    async downloadDeclarations(payroll_ids: number[]) {
+        const res = await api.post(
+            '/payrolls/download/declarations',
+            { payroll_ids },
+            { responseType: 'blob' }
+        );
+
+        // axios headers case-insensitive է, բայց անվտանգ է վերցնել bracket-ով
+        const disposition: string | undefined = (res.headers as any)['content-disposition'];
+
+        const filename = getFilenameFromDisposition(
+            disposition,
+            `SRC_Payroll_Upload_${new Date().toISOString().slice(0,10)}.xlsx`
+        );
+
+        const blob = new Blob([res.data], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        return true;
+    },
+    payPayroll: async (payroll_ids: number[]) => {
+        return api.post(`/payrolls/pay`, {payroll_ids}).then(r => r.data)
+    }
+}
 export const recyclingMaterialsApi = {
     // GET /manufacturing/recycle/materials/{storage_id}
     list(storageId, params = {}) {

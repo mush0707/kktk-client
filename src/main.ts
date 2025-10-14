@@ -12,6 +12,7 @@ import '@vuepic/vue-datepicker/dist/main.css'
 import scrollPagination from '@/plugins/scrollPagination.ts'
 import timezone from '@/plugins/timezone';
 import dateFormat from '@/plugins/dateFormat'
+import '@vueform/multiselect/themes/default.css'
 const app = createApp(App)
 const pinia = createPinia()
 pinia.use(piniaPersist)

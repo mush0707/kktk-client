@@ -20,7 +20,7 @@ const showShell = computed(() => auth.isAuthed && route.path !== '/login')
 
   <!-- Authenticated app shell with left sidebar -->
   <div v-else class="min-h-screen grid grid-cols-1 md:grid-cols-[240px_1fr]">
-    <aside class="hidden md:block border-r border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/70">
+    <aside class="overflow-auto hidden md:block border-r border-gray-200 bg-white/80 backdrop-blur dark:border-gray-800 dark:bg-gray-900/70">
       <Sidebar />
     </aside>
 

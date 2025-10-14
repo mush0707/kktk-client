@@ -12,7 +12,6 @@ const show = ref(false)
 const pending = ref(false)
 const err = ref<string | null>(null)
 const ok = ref(false)
-
 const auth = useAuth()
 const router = useRouter()
 const route = useRoute()

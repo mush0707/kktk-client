@@ -46,6 +46,21 @@ const routes: RouteRecordRaw[] = [
     {path: '/storages/:id/control/departments', component: () => import('@/views/control/storages/StorageDepthControl.vue'), meta: {auth: true, can: 'storage_departments.manage'}},
     {path: '/storages/:id/control/departments/:department_id', component: () => import('@/views/control/storages/StorageDepthDepartment.vue'), meta: {auth: true, can: 'storage_departments.manage'}},
 
+    {path: '/interview/stages', component: () => import('@/views/interview_stage/InterviewStage.vue'), meta: {auth: true, can: 'interview_stage.manage'}},
+    {path: '/accounting', component: () => import('@/views/accounting/Accounting.vue'), meta: {auth: true, can: 'accounting.manage'}},
+    {path: '/hr/role-positions', component: () => import('@/views/hr/RolePosition.vue'), meta: {auth: true, can: 'accounting_role_positions.manage'}},
+    {path: '/hr/vacancy', component: () => import('@/views/hr/Vacancy.vue'), meta: {auth: true, can: 'accounting_vacancy.manage'}},
+    {path: '/hr/candidates', component: () => import('@/views/hr/Candidates.vue'), meta: {auth: true, can: 'accounting_candidates.manage'}},
+    {path: '/hr', component: () => import('@/views/hr/Hr.vue'), meta: {auth: true, can: 'hr.view'}},
+
+    {path: '/hr/employees/', component: () => import('@/views/hr/EmployeesIndex.vue'), meta: {auth: true, can: 'hr.manage'}},
+    {path: '/hr/employees/:id/manage', component: () => import('@/views/hr/EmployeeManage.vue'), meta: {auth: true, can: 'hr.manage'}},
+    {path: '/activate', component: () => import('@/views/UserActivate.vue'), meta: {auth: false}},
+    {path: '/hr/settings', component: () => import('@/views/hr/Settings.vue'), meta: {auth: true, can: 'hr.manage'}},
+    {path: '/hr/leave-requests', component: () => import('@/views/hr/Leave/LeaveRequests.vue'), meta: {auth: true, can: 'hr.manage'}},
+    {path: '/hr/my/leave-requests', component: () => import('@/views/hr/Leave/MyLeaveRequests.vue'), meta: {auth: true, can: 'employee.view'}},
+    {path: '/payroll/settings', component: () => import('@/views/PayrollSettings.vue'), meta: {auth: true, can: 'hr.manage'}},
+    {path: '/payrolls', component: () => import('@/views/accounting/Payroll.vue'), meta: {auth: true, can: 'hr.manage'}}
 ]
 
 const router = createRouter({

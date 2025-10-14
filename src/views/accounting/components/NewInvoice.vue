@@ -455,9 +455,4 @@ export default {
 };
 </script>
 
-<style scoped>
-.input { @apply w-full rounded-lg border px-3 py-2; }
-.label { @apply block text-sm mb-1 text-slate-600; }
-.input-cell { @apply w-full border-0 outline-none focus:ring-0; }
-.req { @apply text-red-500; }
-</style>
+
