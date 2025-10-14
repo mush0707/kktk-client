@@ -78,6 +78,7 @@
             <thead class="bg-gray-50 text-gray-600">
             <tr>
               <th class="text-left px-4 py-3">#</th>
+              <th class="text-left px-4 py-3">{{ $t('status') }}</th>
               <th class="text-left px-4 py-3">{{ $t('name') || 'Անուն Ազգանուն' }}</th>
               <th class="text-left px-4 py-3">{{ $t('department') || 'Բաժին' }}</th>
               <th class="text-left px-4 py-3">{{ $t('role') || 'Պաշտոն' }}</th>
@@ -89,6 +90,7 @@
             <tbody class="divide-y">
             <tr v-for="(e, i) in filtered" :key="e.id" class="hover:bg-gray-50">
               <td class="px-4 py-3">{{ i + 1 }}</td>
+              <td class="px-4 py-3">{{ e.event_status ? $t('event_'+e.event_status) : '-' }}</td>
               <td class="px-4 py-3">
                 <div class="font-medium">{{ e.name }}</div>
                 <div class="text-xs text-gray-500">
@@ -218,7 +220,6 @@ const showActivateModal = ref(false)
 const activateData = ref<object | null>(null)
 const q = ref('')
 const status = ref<'all' | 'new_hires' | 'needs_docs' | 'active' | 'inactive'>('all')
-const selectedPills = reactive<Record<string, boolean>>({})
 const uiError = ref('')
 
 /** Modal state */
@@ -249,6 +250,7 @@ type TableRow = {
   candidate: boolean
   hasEmployee: boolean
   status:string|null,
+  event_status: string | null,
   meta: { is_new_hire: boolean; needs_docs: boolean; needs_contract: boolean }
 }
 
@@ -268,6 +270,7 @@ const rows = computed<TableRow[]>(() => {
       id: u.user.id,
       employee_id: u?.id ?? null,
       status: u?.user.status,
+      event_status: u?.latest_event?.event_type,
       name: u.first_name+ ' '+u.last_name,
       email: u.email || null,
       department,

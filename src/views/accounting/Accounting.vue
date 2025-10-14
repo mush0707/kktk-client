@@ -12,15 +12,10 @@
         <RouterLink to="/accounting/invoices" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
           <p class="font-semibold">{{$t('invoices')}}</p>
         </RouterLink>
-        <RouterLink :to="'/accounting/role-positions'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
-          <p class="font-semibold">հաստիքագրում</p>
+        <RouterLink :to="'/payrolls'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
+          <p class="font-semibold">Աշխատատավարձ</p>
         </RouterLink>
-        <RouterLink :to="'/accounting/vacancy'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
-          <p class="font-semibold">Թափուր աշխատատեղեր</p>
-        </RouterLink>
-        <RouterLink :to="'/accounting/candidates'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
-          <p class="font-semibold">Կանդիդատ</p>
-        </RouterLink>
+
       </div>
     </div>
   </div>

@@ -994,7 +994,7 @@ async function loadAttachedCandidates() {
 async function loadCandidates() {
   cand.loading = true
   try {
-    const params = {limit: 50, offset: 0}
+    const params = {limit: 50, offset: 0, with_worker: 0}
     if (cand.q && cand.q.trim()) params.search = cand.q.trim()
     const res = await candidateApi?.list?.(params)
     const arr = res?.data?.data ?? res?.data ?? res ?? []

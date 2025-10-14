@@ -313,7 +313,7 @@
 
             <div>
               <strong class="block text-gray-600">{{ $t('marital_status') }}:</strong>
-              <span class="text-gray-900">{{ $t(employee.marital_status) }}</span>
+              <span class="text-gray-900">{{employee?.marital_status? $t(employee?.marital_status) : '-' }}</span>
             </div>
 
             <div>
@@ -341,10 +341,6 @@
               <span class="text-gray-900">{{ employee.address_city }}</span>
             </div>
 
-            <div>
-              <strong class="block text-gray-600">{{ $t('address_country') }}:</strong>
-              <span class="text-gray-900">{{ employee.address_country }}</span>
-            </div>
 
             <div class="sm:col-span-2 lg:col-span-3">
               <strong class="block text-gray-600">{{ $t('address_line') }}:</strong>
@@ -353,12 +349,12 @@
 
             <div>
               <strong class="block text-gray-600">{{ $t('emergency_contact_name') }}:</strong>
-              <span class="text-gray-900">{{ employee.emergency_contact_name }}</span>
+              <span class="text-gray-900">{{ employee.emergency_contact_name??'-' }}</span>
             </div>
 
             <div>
               <strong class="block text-gray-600">{{ $t('emergency_contact_phone') }}:</strong>
-              <span class="text-gray-900">{{ employee.emergency_contact_phone }}</span>
+              <span class="text-gray-900">{{ employee.emergency_contact_phone??'-' }}</span>
             </div>
 
 
@@ -590,6 +586,7 @@ const getEmployee = async (id: number) => {
 }
 
 const getCountry = (code: String) => {
+  console.log(code)
   return ISO2.find((obj) => obj.code === code)?.name ?? code
 }
 

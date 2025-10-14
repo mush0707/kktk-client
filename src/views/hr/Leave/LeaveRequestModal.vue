@@ -211,7 +211,8 @@ const validate = (): string => {
     return "Մուտքագրեք արձակուրդի անվանում։";
   if (!form.value.date_from) return "Սկիզբը պարտադիր է։";
   if (!form.value.date_to) return "Վերջը պարտադիր է։";
-  if (requestedDays.value > getBalance(selectedLeaveType.value.id)) {
+
+    if (requestedDays?.value > getBalance(selectedLeaveType?.value?.id) && form?.value.leave_type_id !== 'custom') {
     return "Խնդրած օրերի թիվը գերազանցում է հասանելի օրերը։";
   }
   return "";

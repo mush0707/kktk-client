@@ -18,7 +18,7 @@
       <div class="p-4 grid grid-cols-1 gap-6 text-sm max-h-[75vh] overflow-y-auto" @keydown.enter.prevent="trySave">
         <!-- Personal -->
         <section class="space-y-3">
-          <div class="text-slate-500">{{ t('personal') || 'Անձնական տվյալներ' }}</div>
+          <div class="text-slate-500">{{ t('personal_information') || 'Անձնական տվյալներ' }}</div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
               <label class="text-xs text-slate-500">{{ t('first_name') || 'Անուն' }}</label>
@@ -93,6 +93,22 @@
               />
             </div>
           </div>
+
+          <div class="md:col-span-3">
+            <label class="inline-flex items-center gap-2 text-sm">
+              <input
+                  type="checkbox"
+                  v-model="form.pension_voluntary"
+                  class="w-4 h-4 rounded border-gray-300"
+                  :true-value="true"
+                  :false-value="false"
+              />
+              <span>{{ t('pension_voluntary') || 'Կամավոր կենսաթոշակ' }}</span>
+            </label>
+            <p class="text-xs text-slate-500 mt-1">
+              {{ t('pension_voluntary_hint') || 'Նշեք, եթե աշխատակիցը մասնակցում է կամավոր կուտակային կենսաթոշակին' }}
+            </p>
+          </div>
         </section>
 
         <!-- Contacts -->
@@ -161,7 +177,7 @@
 
         <!-- Documents -->
 
-        <p v-if="uiError" class="text-xs text-red-600">{{ uiError }}</p>
+
       </div>
 
       <!-- Footer -->
@@ -226,6 +242,7 @@ export type Form = {
   emergency_contact_name: string | null
   emergency_contact_phone: string | null
   user_id?: number | null
+  pension_voluntary: boolean | null
 }
 
 export type DocType = {
@@ -261,7 +278,7 @@ const form = reactive<Form>({
   middle_name: null,
   birth_date: null,
   gender: null,
-  citizenship: null,
+  citizenship: 'AM',
   national_id: null,
   marital_status: null,
   phone: null,
@@ -271,6 +288,7 @@ const form = reactive<Form>({
   emergency_contact_name: null,
   emergency_contact_phone: null,
   user_id: null,
+  pension_voluntary:  false
 })
 
 const original = ref({})
@@ -336,17 +354,24 @@ const missingRequired = computed(() =>
 
 function prefill(src?: Partial<Employee> | null) {
   if (!src) return
-  Object.assign(form, src)
+  const norm = { ...src }
+  if (norm.hasOwnProperty('pension_voluntary')) {
+    // normalize 0/1/"0"/"1" to boolean
+    // @ts-ignore
+    norm.pension_voluntary = norm.pension_voluntary === 1 || norm.pension_voluntary === '1' || norm.pension_voluntary === true
+  }
+  Object.assign(form, norm)
 }
 
 function resetForm() {
   Object.assign(form, {
     first_name: '', last_name: '', middle_name: null,
-    birth_date: null, gender: null, citizenship: null, national_id: null,
+    birth_date: null, gender: null, citizenship: 'AM', national_id: null,
     marital_status: null, phone: null, email: null,
     address_country: null, address_city: null, address_line: null,
     emergency_contact_name: null, emergency_contact_phone: null,
-    user_id: null
+    user_id: null,
+    pension_voluntary: false,
   })
 }
 
@@ -391,6 +416,7 @@ function load() {
       phone: props.staffUser?.phone,
       gender: props.staffUser?.gender,
       birth_date: props.staffUser?.birth_date
+
     })
   }
   original.value = JSON.parse(JSON.stringify(form))
@@ -410,39 +436,38 @@ async function trySave() {
   uiError.value = ''
   errors.value = {}
 
-  if (!minimalValid.value) {
-    uiError.value = t('fill_required_fields') || 'Լրացրեք պարտադիր դաշտերը'
-    return
-  }
-
-  if (missingRequired.value.length) {
-    uiError.value = `${t('missing') || 'Բացակայում են պարտադիր փաստաթղթեր'}: ${missingRequired.value.join(', ')}`
-    return
-  }
 
   saving.value = true
   try {
+    // Format birth_date
     if (form.birth_date) {
       const d = new Date(form.birth_date)
       form.birth_date = d.toISOString().slice(0, 10) // e.g., "2025-10-06"
     }
 
-    const payload = {...form}
-
+    // Create FormData with employee data
     const fd = new FormData()
-    Object.entries(payload).forEach(([k, v]) => fd.append(k, v ?? ''))
-    Object.entries(docUploads).forEach(([typeId, f]) => {
-      if (f) fd.append(`docs[${typeId}]`, f)
+    Object.entries(form).forEach(([key, value]) => {
+      if (key === 'pension_voluntary') {
+        fd.append(key, value == null ? '' : (value ? '1' : '0'))
+      } else {
+        fd.append(key, value ?? '')
+      }
     })
+    // Append documents with type_id and documents[]
+    for (const [typeId, file] of Object.entries(docUploads)) {
+      if (!file) continue
+      fd.append('type_id', typeId)      // type of document
+      fd.append('documents[]', file)    // file itself
+    }
 
-    await employeesApi.update(props.staffUser.id, payload as any)
-    await uploadDocsIfAny(props.staffUser.id)
+    // Save employee (create or update)
+    const res = await employeesApi.update(props.staffUser.id, fd);
 
 
-    emit('saved')
-  } catch (e) {
-    console.log(e)
-   } finally {
+    emit('saved', res)
+    emit('close')
+  }  finally {
     saving.value = false
   }
 }

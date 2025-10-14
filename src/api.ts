@@ -788,7 +788,10 @@ export const employeesApi = {
         const {data} = await api.post("/employees", payload);
         return data;
     }, async update(id, payload) {
-        const {data} = await api.patch(`/employees/${id}`, payload);
+        const {data} = await api.post(`/employees/${id}`, payload, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        });
+
         return data;
     },
     getDocTypes: () => api.get('/employees/doc-types').then(r => r.data),
@@ -840,7 +843,9 @@ export async function activateAccount(payload: {
 
 export const contractsApi = {
     async create(payload: object) {
-        const {data} = await api.post("/employee-contracts", payload);
+        const {data} = await api.post("/employee-contracts", payload, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        });
         return data;
     },
     async updateLeaveTypes(id: number, payload: object) {
@@ -882,5 +887,70 @@ export const leaveRequestApi = {
     rejectStatus(id: number, data: object) {
         return api.post(`/leave-requests/${id}/reject`, data).then(r => r.data)
     }
+}
 
+export const payrollSettingApi = {
+    getData: () => api.get('/payroll-settings').then(r => r.data),
+    update(id: number, payload: object) {
+        return api.patch(`/payroll-settings/${id}`, payload).then(r => r.data)
+    },
+}
+
+function getFilenameFromDisposition(disposition?: string, fallback = 'SRC_Payroll_Upload.xlsx') {
+    if (!disposition) return fallback;
+    // attachment; filename="SRC_Payroll_Upload_20251013_1605.xlsx"
+    // կամ filename*=UTF-8''SRC_Payroll_Upload_20251013_1605.xlsx
+    const matchStar = /filename\*=(?:UTF-8'')?("?)([^";]+)\1/i.exec(disposition);
+    if (matchStar?.[2]) return decodeURIComponent(matchStar[2]);
+    const match = /filename="?([^";]+)"?/i.exec(disposition);
+    if (match?.[1]) return match[1];
+    return fallback;
+}
+export const payrollApi = {
+    getUnpaid(params: any) {
+        return api.get('/payrolls/unpaid', {
+            params: params
+        }).then(r => r.data);
+    },
+
+
+    getPaid(params: any) {
+        return api.get('/payrolls/paid', {
+            params: params
+        }).then(r => r.data);
+    },
+
+
+    async downloadDeclarations(payroll_ids: number[]) {
+        const res = await api.post(
+            '/payrolls/download/declarations',
+            { payroll_ids },
+            { responseType: 'blob' }
+        );
+
+        // axios headers case-insensitive է, բայց անվտանգ է վերցնել bracket-ով
+        const disposition: string | undefined = (res.headers as any)['content-disposition'];
+
+        const filename = getFilenameFromDisposition(
+            disposition,
+            `SRC_Payroll_Upload_${new Date().toISOString().slice(0,10)}.xlsx`
+        );
+
+        const blob = new Blob([res.data], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+
+        return true;
+    },
+    payPayroll: async (payroll_ids: number[]) => {
+        return api.post(`/payrolls/pay`, {payroll_ids}).then(r => r.data)
+    }
 }
