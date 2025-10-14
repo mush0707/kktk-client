@@ -1,4 +1,5 @@
-import { HomeIcon, UserPlusIcon, BanknotesIcon, ShieldCheckIcon, Cog6ToothIcon, LockClosedIcon, RectangleGroupIcon, TagIcon, DocumentTextIcon, BuildingStorefrontIcon, ShoppingCartIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, UserGroupIcon, TruckIcon, TrashIcon, ScaleIcon, CalculatorIcon, ReceiptPercentIcon, InboxArrowDownIcon, ArchiveBoxIcon, BuildingOffice2Icon, CubeIcon, QueueListIcon, UsersIcon } from '@heroicons/vue/24/outline'
+import { HomeIcon, UserPlusIcon, BanknotesIcon, ShieldCheckIcon, Cog6ToothIcon, LockClosedIcon, RectangleGroupIcon, TagIcon, DocumentTextIcon, BuildingStorefrontIcon, ShoppingCartIcon, ClipboardDocumentCheckIcon, ClipboardDocumentListIcon, UserGroupIcon, TruckIcon, TrashIcon, ScaleIcon, CalculatorIcon, ReceiptPercentIcon, InboxArrowDownIcon, ArchiveBoxIcon, BuildingOffice2Icon, CubeIcon, QueueListIcon, UsersIcon,
+    ArrowPathIcon, CalendarDaysIcon } from '@heroicons/vue/24/outline'
 
 export const iconMap: Record<string, any> = {
     HomeIcon,
@@ -25,5 +26,7 @@ export const iconMap: Record<string, any> = {
     ClipboardDocumentCheckIcon,
     TagIcon,
     QueueListIcon,
-    UsersIcon
+    UsersIcon,
+    ArrowPathIcon,
+    CalendarDaysIcon
 }
