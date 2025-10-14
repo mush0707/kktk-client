@@ -59,7 +59,7 @@ const routes: RouteRecordRaw[] = [
     {path: '/hr/settings', component: () => import('@/views/hr/Settings.vue'), meta: {auth: true, can: 'hr.leave_types.view'}},
     {path: '/hr/leave-requests', component: () => import('@/views/hr/Leave/LeaveRequests.vue'), meta: {auth: true, can: 'hr.leave_requests.view'}},
     {path: '/requests/hr/leave-requests', component: () => import('@/views/hr/Leave/MyLeaveRequests.vue'), meta: {auth: true}},
-    {path: '/requests/hr', component: () => import('@/views/requests/hr/Hr.vue'), meta: {auth: true, can: 'hr.candidates.view'}},
+    {path: '/requests/hr', component: () => import('@/views/requests/hr/Hr.vue'), meta: {auth: true}},
     {path: '/payroll/settings', component: () => import('@/views/PayrollSettings.vue'), meta: {auth: true, can: 'hr.manage'}},
     {path: '/payrolls', component: () => import('@/views/accounting/Payroll.vue'), meta: {auth: true, can: 'hr.manage'}}
 ]
