@@ -9,9 +9,9 @@
 
     <div class="relative bg-white rounded-2xl w-full max-w-3xl shadow-xl overflow-hidden">
       <!-- Header -->
-      <div class="flex items-center justify-between p-4 border-b">
+      <div class="flex items-center justify-between p-4 border-b border-gray-300">
         <div class="text-lg font-semibold">{{ modalTitle }}</div>
-        <button class="px-3 py-1 rounded-xl border hover:bg-gray-50" @click="handleClose">✕</button>
+        <button class="px-3 py-1 rounded-xl border border-gray-300 hover:bg-gray-50" @click="handleClose">✕</button>
       </div>
 
       <!-- Body -->
@@ -21,20 +21,20 @@
           <div class="text-slate-500">{{ t('personal_information') || 'Անձնական տվյալներ' }}</div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label class="text-xs text-slate-500">{{ t('first_name') || 'Անուն' }}</label>
+              <label class="text-xs text-slate-500">{{ t('first_name') || 'Անուն' }}  <span class="text-red-600">*</span></label>
               <input
                   v-model.trim="form.first_name"
                   :disabled="isEdit && updateEditableOnly"
-                  class="w-full border rounded-xl px-3 py-2"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2"
                   placeholder="Ani"
               />
             </div>
             <div>
-              <label class="text-xs text-slate-500">{{ t('last_name') || 'Ազգանուն' }}</label>
+              <label class="text-xs text-slate-500">{{ t('last_name') || 'Ազգանուն' }}  <span class="text-red-600">*</span></label>
               <input
                   v-model.trim="form.last_name"
                   :disabled="isEdit && updateEditableOnly"
-                  class="w-full border rounded-xl px-3 py-2"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2"
                   placeholder="Hakobyan"
               />
             </div>
@@ -43,12 +43,12 @@
               <input
                   v-model.trim="form.middle_name"
                   :disabled="isEdit && updateEditableOnly"
-                  class="w-full border rounded-xl px-3 py-2"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2"
               />
             </div>
 
             <div>
-              <label class="text-xs text-slate-500">{{ t('birth_date') || 'Ծննդյան ամսաթիվ' }}</label>
+              <label class="text-xs text-slate-500">{{ t('birth_date') || 'Ծննդյան ամսաթիվ' }}  <span class="text-red-600">*</span></label>
               <DatePicker
                   v-model="form.birth_date"
                   :clearable="false"
@@ -57,15 +57,17 @@
                   :teleport="true"
                   auto-apply
                   z-index="3000"
+                  :max-date="maxDate"
+                  :flow="flow"
               ></DatePicker>
             </div>
 
             <div>
-              <label class="text-xs text-slate-500">{{ t('gender') || 'Սեռ' }}</label>
+              <label class="text-xs text-slate-500">{{ t('gender') || 'Սեռ' }}  <span class="text-red-600">*</span></label>
               <select
                   v-model="form.gender"
                   :disabled="isEdit && updateEditableOnly"
-                  class="w-full border rounded-xl px-3 py-2"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2"
               >
                 <option :value="null">—</option>
                 <option value="male">{{ t('male') || 'Արական' }}</option>
@@ -74,7 +76,7 @@
             </div>
 
             <div>
-              <label class="text-xs text-slate-500">{{ t('citizenship') || 'Քաղաքացիություն' }}</label>
+              <label class="text-xs text-slate-500">{{ t('citizenship') || 'Քաղաքացիություն' }}  <span class="text-red-600">*</span></label>
               <select v-model="form.citizenship"
                       :class="err('country_iso')"
                       :disabled="isEdit && updateEditableOnly" aria-required="true" class="w-full px-3 py-2 rounded-xl border">
@@ -84,12 +86,12 @@
             </div>
 
             <div class="md:col-span-3">
-              <label class="text-xs text-slate-500">{{ t('national_id') || 'Անձն․/սոց․ քարտ/ID' }}</label>
+              <label class="text-xs text-slate-500">{{ t('national_id') || 'Անձն․/սոց․ քարտ/ID' }}  <span class="text-red-600">*</span></label>
               <input
                   v-model.trim="form.national_id"
                   :disabled="false"
-                  class="w-full border rounded-xl px-3 py-2"
-                  placeholder="օր. 00000000"
+                  class="w-full border border-gray-300 rounded-xl px-3 py-2"
+                  placeholder="օր. AA0000000"
               />
             </div>
           </div>
@@ -99,7 +101,7 @@
               <input
                   type="checkbox"
                   v-model="form.pension_voluntary"
-                  class="w-4 h-4 rounded border-gray-300"
+                  class="w-4 h-4 rounded border-gray-300 border-gray-300"
                   :true-value="true"
                   :false-value="false"
               />
@@ -116,17 +118,19 @@
           <div class="text-slate-500">{{ t('contacts') || 'Կոնտակտային տվյալներ' }}</div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div>
-              <label class="text-xs text-slate-500">{{ t('phone') || 'Հեռախոս' }}</label>
-              <input v-model.trim="form.phone" class="w-full border rounded-xl px-3 py-2" placeholder="+374…"/>
+              <label class="text-xs text-slate-500">{{ t('phone') || 'Հեռախոս' }} <span class="text-red-600">*</span></label>
+              <input v-model.trim="form.phone" class="w-full border border-gray-300 rounded-xl px-3 py-2"
+                     placeholder="+374…"/>
             </div>
             <div>
-              <label class="text-xs text-slate-500">{{ t('auth.email') || 'Էլ․ փոստ' }}</label>
-              <input v-model.trim="form.email" class="w-full border rounded-xl px-3 py-2" placeholder="name@company.am"
+              <label class="text-xs text-slate-500">{{ t('auth.email') || 'Էլ․ փոստ' }} <span class="text-red-600">*</span></label>
+              <input v-model.trim="form.email" class="w-full border border-gray-300 rounded-xl px-3 py-2"
+                     placeholder="name@company.am"
                      type="email"/>
             </div>
             <div>
               <label class="text-xs text-slate-500">{{ t('marital_status') || 'Ընտ․ կարգավիճակ' }}</label>
-              <select v-model="form.marital_status" class="w-full border rounded-xl px-3 py-2">
+              <select v-model="form.marital_status" class="w-full border border-gray-300 rounded-xl px-3 py-2">
                 <option :value="null">—</option>
                 <option value="single">{{ t('single') || 'Չամուսնացած' }}</option>
                 <option value="married">{{ t('married') || 'Ամուսնացած' }}</option>
@@ -135,25 +139,50 @@
 
 
             <div>
-              <label class="text-xs text-slate-500">{{ t('address_city') || 'Քաղաք' }}</label>
-              <input v-model.trim="form.address_city" class="w-full border rounded-xl px-3 py-2"/>
+              <label class="text-xs text-slate-500">{{ t('address_city') || 'Քաղաք' }}  <span class="text-red-600">*</span></label>
+              <select
+                  v-model="form.address_city"
+                  class="w-full border rounded-xl px-3 py-2"
+              >
+                <option :value="null">—</option>
+                <option v-for="city in armeniaCities" :key="city.code" :value="city.code">
+                  {{ city.code }}
+                </option>
+              </select>
             </div>
             <div class="md:col-span-3">
-              <label class="text-xs text-slate-500">{{ t('address_line') || 'Հասցե (փողոց, շենք, բկ)' }}</label>
-              <input v-model.trim="form.address_line" class="w-full border rounded-xl px-3 py-2"/>
+              <label class="text-xs text-slate-500">{{ t('address_line') || 'Հասցե (փողոց, շենք, բկ)' }}  <span class="text-red-600">*</span></label>
+              <div class="relative">
+                <input
+                    v-model="form.address_line"
+                    type="text"
+                    class="w-full border border-gray-300 rounded-xl px-3 py-2"
+                 />
+
+                <ul v-if="addressSuggestions.length"
+                    class="absolute z-50 bg-white border border-gray-300 rounded-xl mt-1 w-full max-h-40 overflow-auto shadow-md">
+                  <li v-for="(suggestion, i) in addressSuggestions" :key="i"
+                      class="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                      @click="form.address_line = suggestion; addressSuggestions = []">
+                    {{ suggestion }}
+                  </li>
+                </ul>
+            </div>
             </div>
 
             <div>
               <label class="text-xs text-slate-500">{{
                   t('emergency_contact_name') || 'Արտակարգ կոնտակտ (անուն)'
                 }}</label>
-              <input v-model.trim="form.emergency_contact_name" class="w-full border rounded-xl px-3 py-2"/>
+              <input v-model.trim="form.emergency_contact_name"
+                     class="w-full border border-gray-300 rounded-xl px-3 py-2"/>
             </div>
             <div>
               <label class="text-xs text-slate-500">{{
                   t('emergency_contact_phone') || 'Արտակարգ կոնտակտ (հեռ.)'
                 }}</label>
-              <input v-model.trim="form.emergency_contact_phone" class="w-full border rounded-xl px-3 py-2"/>
+              <input v-model.trim="form.emergency_contact_phone"
+                     class="w-full border border-gray-300 rounded-xl px-3 py-2"/>
             </div>
           </div>
         </section>
@@ -165,8 +194,8 @@
 
 
             <div class="mb-2 flex items-center gap-2">
-              <span class="font-medium">{{ doc.name }} </span>
-              <span v-if="isRequired(doc)" class="text-red-600 text-xs">★ {{ $t('required') || 'պարտադիր' }}</span>
+              <span class="font-medium">{{ doc.name }}</span>
+              <span v-if="isRequired(doc)" class="text-red-600 text-xs"><span class="text-red-600">*</span></span>
             </div>
             <input :ref="el => fileInputs[doc.id] = el" :accept="fileAccept"
                    class="w-full px-3 py-2 rounded-xl border border-gray-500"
@@ -221,10 +250,17 @@ const modalTitle = computed(() =>
 )
 
 const errors = ref({})
+const flow = ref(['year','month', 'calendar']);
 
 function err(field) {
   return errors.value?.[field] ? 'border-red-500' : ''
 }
+
+const  maxDate = computed(() => {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - 18)
+  return d.toISOString().slice(0, 10)
+})
 
 export type Form = {
   first_name: string
@@ -271,6 +307,44 @@ const ISO2 = [
   {code: 'CA', name: 'Canada'}, {code: 'BR', name: 'Brazil'}, {code: 'KZ', name: 'Kazakhstan'}
 ]
 
+const armeniaCities = [
+  {code: 'Yerevan', name: 'Երևան'},
+  {code: 'Gyumri', name: 'Գյումրի'},
+  {code: 'Vanadzor', name: 'Վանաձոր'},
+  {code: 'Vagharshapat', name: 'Էջմիածին'},
+  {code: 'Hrazdan', name: 'Հրազդան'},
+  {code: 'Abovyan', name: 'Աբովյան'},
+  {code: 'Kapan', name: 'Կապան'},
+  {code: 'Armavir', name: 'Արմավիր'},
+  {code: 'Stepanavan', name: 'Ստեփանավան'},
+  {code: 'Gavar', name: 'Գավառ'},
+  {code: 'Sevan', name: 'Սևան'},
+  {code: 'Charentsavan', name: 'Չարենցավան'},
+  {code: 'Ijevan', name: 'Իջևան'},
+  {code: 'Ararat', name: 'Արարատ'},
+  {code: 'Artashat', name: 'Արտաշատ'},
+  {code: 'Masis', name: 'Մասիս'},
+  {code: 'Dilijan', name: 'Դիլիջան'},
+  {code: 'Sisian', name: 'Սիսիան'},
+  {code: 'Martuni', name: 'Մարտունի'},
+  {code: 'Ashtarak', name: 'Աշտարակ'},
+  {code: 'Spitak', name: 'Սպիտակ'},
+  {code: 'Tashir', name: 'Տաշիր'},
+  {code: 'Meghri', name: 'Մեղրի'},
+  {code: 'Noyemberyan', name: 'Նոյեմբերյան'},
+  {code: 'Vardenis', name: 'Վարդենիս'},
+  {code: 'Aparan', name: 'Ապարան'},
+  {code: 'Byureghavan', name: 'Բյուրեղավան'},
+  {code: 'Maralik', name: 'Մարալիկ'},
+  {code: 'Yeghvard', name: 'Եղվարդ'},
+  {code: 'Alaverdi', name: 'Ալավերդի'},
+  {code: 'Agarak', name: 'Ագարակ'},
+  {code: 'Talin', name: 'Թալին'},
+  {code: 'Vedi', name: 'Վեդի'},
+  {code: 'Shamlugh', name: 'Շամլուղ'},
+  {code: 'Jermuk', name: 'Ջերմուկ'}
+]
+
 
 const form = reactive<Form>({
   first_name: '',
@@ -304,6 +378,7 @@ const loadingDocs = ref(false)
 const fileAccept = '.pdf,image/*'
 const maxFileBytes = 10 * 1024 * 1024
 const fileInputs = reactive<Record<number, HTMLInputElement | null>>({})
+const addressSuggestions = ref<string[]>([])
 
 function isRequired(dt: DocType) {
   return !!(dt.pivot && Number(dt.pivot.required) === 1)
@@ -332,6 +407,8 @@ function onPickFile(typeId: number, e: Event) {
   }
   docUploads[typeId] = file
 }
+
+
 
 async function uploadDocsIfAny(employeeId: number) {
   const entries = Object.entries(docUploads).filter(([, f]) => !!f)

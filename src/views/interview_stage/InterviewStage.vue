@@ -193,8 +193,7 @@ async function deleteStage(row) {
     // rollback on error
     rows.value = prevRows
     console.error(e)
-    alert('Ջնջումը ձախողվեց')
-  } finally {
+   } finally {
     deleting[row.id] = false
   }
 }

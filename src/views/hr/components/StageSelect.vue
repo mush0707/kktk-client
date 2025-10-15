@@ -21,7 +21,7 @@
           ref="inputRef"
           v-model="query"
           :placeholder="placeholder"
-          class="flex-1 min-w-[120px] border-0 outline-none text-sm py-1"
+          class="flex-1 min-w-[120px] border-0 border-gray-300 outline-none text-sm py-1"
           @keydown.down.prevent="move(1)"
           @keydown.up.prevent="move(-1)"
           @keydown.enter.prevent="enterSelect"
@@ -58,14 +58,8 @@
           @mousedown.stop
           @touchstart.stop
       >
-        <div class="bg-white border rounded-xl shadow-xl max-h-72 overflow-auto w-[420px]">
-          <!-- header tip -->
-          <div class="px-3 py-2 text-[11px] text-slate-500 border-b">
-            <span v-if="softLimited && !query">
-              Showing first {{ softLimit }} results. Type to search more…
-            </span>
-            <span v-else>Type to filter. ↑/↓ to navigate, Enter to select.</span>
-          </div>
+        <div class="bg-white border border-gray-300 rounded-xl shadow-xl max-h-72 overflow-auto w-[420px]">
+
 
           <!-- options -->
           <div v-if="displayed.length === 0" class="px-3 py-3 text-sm text-slate-500">
@@ -88,7 +82,7 @@
           <!-- footer status -->
           <div class="px-3 py-2 text-[11px] text-slate-500 border-t flex items-center justify-between">
             <span v-if="query && !allLoaded">Searching more pages…</span>
-            <span v-else>{{ displayed.length }} / {{ totalShown }} shown</span>
+            <span v-else>{{ displayed.length }} / {{ totalShown }} {{$t('shown')}}</span>
             <button
                 v-if="query && !allLoaded"
                 class="text-xs underline"
@@ -133,9 +127,23 @@ const softLimited = computed(() => props.options.length >= props.pageSize)
 
 /* internal selected */
 const internal = ref([...props.modelValue])
-watch(() => props.modelValue, v => { internal.value = [...(v || [])] })
-watch(internal, v => emit('update:modelValue', v))
 
+function arraysEqual(a, b) {
+  if (a.length !== b.length) return false
+  return a.every((el, i) => el.id === b[i].id && el.name === b[i].name)
+}
+
+watch(() => props.modelValue, v => {
+  if (!arraysEqual(v || [], internal.value)) {
+    internal.value = [...(v || [])]
+  }
+})
+
+watch(internal, v => {
+  if (!arraysEqual(v || [], props.modelValue)) {
+    emit('update:modelValue', v)
+  }
+})
 /* dropdown fixed position */
 const dropdownStyle = ref({ top: '0px', left: '0px', width: '420px' })
 function positionDropdown() {

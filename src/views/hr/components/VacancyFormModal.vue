@@ -17,14 +17,14 @@
       <!-- Body -->
       <div class="p-4 grid grid-cols-1 gap-4 text-sm" @keydown.enter.prevent="trySave">
         <!-- Slots (required) -->
-        <div>
+        <div v-if="form.maxValue>1">
           <div class="text-slate-500 mb-1">{{ t('slots') || 'Սլոթերի թիվը' }}</div>
           <input
               type="number"
               min="1"
               step="1"
               v-model.number="form.slots"
-              @input="enforceMin"
+              @input="enforceMinMax"
               class="w-full border rounded-xl px-3 py-2"
           />
           <p v-if="slotsError" class="text-xs text-red-600 mt-1">{{ slotsError }}</p>
@@ -36,8 +36,8 @@
           <input
               type="text"
               v-model.trim="form.title"
-              class="w-full border rounded-xl px-3 py-2"
-              :placeholder="t('optional') || 'ըստ ցանկության'"
+              class="w-full border text-sm rounded-xl px-3 py-2"
+
           />
         </div>
 
@@ -47,8 +47,8 @@
           <textarea
               v-model="form.description"
               rows="5"
-              class="w-full border rounded-xl px-3 py-2"
-              :placeholder="t('optional') || 'ըստ ցանկության'"
+              class="w-full border text-sm rounded-xl px-3 py-2"
+
           ></textarea>
         </div>
       </div>
@@ -76,9 +76,9 @@
 </template>
 
 <script setup>
-import { computed, reactive, watch, ref } from 'vue'
-import { useI18n } from 'vue-i18n'
-import { vacancyApi } from '@/api.js'
+import {computed, reactive, ref, watch} from 'vue'
+import {useI18n} from 'vue-i18n'
+import {vacancyApi} from '@/api.js'
 
 const { t } = useI18n({ useScope: 'global' })
 
@@ -93,6 +93,7 @@ const emit = defineEmits(['close', 'saved'])
 /* ----- state ----- */
 const form = reactive({
   slots: 1,
+  maxValue: 1,
   title: '',
   description: ''
 })
@@ -140,6 +141,7 @@ function loadFromSources() {
       ?? { slots: 1, title: '', description: '' }
 
   form.slots = Number(src?.slots ?? 1)
+  form.maxValue = Number(src?.slots ?? 1)
   form.title = src?.title ?? ''
   form.description = src?.description ?? ''
   enforceMin()
@@ -224,6 +226,14 @@ async function save() {
         (t('save_failed') || 'Պահպանումը ձախողվեց')
    } finally {
     saving.value = false
+  }
+}
+
+function enforceMinMax() {
+  if (form.slots < 1) {
+    form.slots = 1
+  } else if (form.slots > form.maxValue) {
+    form.slots = form.maxValue
   }
 }
 </script>

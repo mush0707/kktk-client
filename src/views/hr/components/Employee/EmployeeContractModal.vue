@@ -86,19 +86,24 @@
           <div class="border rounded-xl p-4 bg-gray-50 grid md:grid-cols-2 gap-4">
             <div class="md:col-span-2">
               <label class="text-sm text-gray-600">Գրաֆիկ <span class="text-red-600">*</span></label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
                 <select v-model="presetKey" @change="applyPreset" class="w-full px-3 py-2 rounded-xl border border-gray-300">
                   <option :value="''" disabled>{{ $t('select') || 'Ընտրել' }}</option>
                   <option v-for="opt in filteredPresets" :key="opt.key" :value="opt.key">{{ opt.label }}</option>
                   <option v-if="form.contract.work_time_type === 'part'" :selected="true" value="custom">+ Այլ</option>
                   <option v-else value="custom">+ Այլ</option>
                 </select>
+
+              </div>
+              <div class="grid mt-2 grid-cols-1 md:grid-cols-1 gap-2">
                 <input
+                    v-if="presetKey === 'custom'"
                     v-model.trim="form.schedule.name"
                     :disabled="presetKey !== 'custom'"
                     class="w-full px-3 py-2 rounded-xl border border-gray-300 disabled:bg-gray-100"
                     placeholder="օր.՝ 5-օրյա 8 ժամ / 24/48"
                 />
+
               </div>
               <p v-if="showRequired && !form.schedule.name" class="text-xs text-red-600">
                 {{ $t('field_required') || 'Պարտադիր դաշտ' }}

@@ -32,7 +32,6 @@
 
         <!-- Admin leave requests: show only if CAN hr.manage AND does NOT have employee.view -->
         <RouterLink
-            v-if="showAdminLeave"
             :to="'/hr/leave-requests'"
             class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow"
         >

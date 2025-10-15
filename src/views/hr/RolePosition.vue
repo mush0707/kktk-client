@@ -47,9 +47,6 @@
               :placeholder="$t('search') + '…'"
               class="border border-gray-300 rounded-xl px-3 py-2 w-[220px] md:w-[280px]"
           />
-          <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" @click="reloadAll">
-            {{ $t('refresh') || 'Թարմացնել' }}
-          </button>
         </div>
       </div>
 
@@ -157,14 +154,15 @@
                           <td class="px-3 py-2">
                             <div class="flex items-center gap-2">
                               <button
-                                  v-if="!row.vacancy"
+                                  v-if="!row.vacancy||row.vacancy.status==='canceled'"
                                   class="px-3 py-1 text-xs font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                                   @click.stop="openCreate(row)"
                               >
                                 {{ $t('add_vacancy') || 'Ավելացնել թափուր' }}
                               </button>
                               <button
-                                  class="px-3 py-1 text-xs font-medium border rounded-md hover:bg-gray-50"
+
+                                  class="cursor-pointer px-3 py-1 whitespace-nowrap text-xs font-medium border bg-blue-600 text-white rounded-md hover:bg-blue-700"
                                   @click.stop="toggleStages(row)"
                               >
                                 {{ showStages[row.id] ? ($t('hide_stages') || 'Թաքցնել փուլերը') : ($t('show_stages') || 'Ցույց տալ փուլերը') }}
@@ -187,9 +185,9 @@
                                         <span class="font-semibold">{{ idx + 1 }}.</span>
                                         <span>{{ st.name }}</span>
                                         <div class="flex items-center gap-1">
-                                          <button class="px-1 py-0.5 border rounded hover:bg-gray-100" @click="moveUp(row, idx)" :disabled="idx===0">↑</button>
-                                          <button class="px-1 py-0.5 border rounded hover:bg-gray-100" @click="moveDown(row, idx)" :disabled="idx===stages[row.id].items.length-1">↓</button>
-                                          <button class="px-1 py-0.5 border rounded hover:bg-red-50 text-red-600" @click="removeStage(row, st)">{{ $t('delete') || 'Ջնջել' }}</button>
+                                          <button class="cursor-pointer px-1 py-0.5 border rounded hover:bg-gray-100 " @click="moveUp(row, idx)" v-if="idx!==0">←</button>
+                                          <button class="cursor-pointer px-1 py-0.5 border rounded hover:bg-gray-100" @click="moveDown(row, idx)" v-if="idx!==stages[row.id].items.length-1">→</button>
+                                          <button class="cursor-pointer px-1 py-0.5 border rounded hover:bg-red-50 text-red-600" @click="removeStage(row, st)">{{ $t('delete') || 'Ջնջել' }}</button>
                                         </div>
                                       </span>
                                 </template>
@@ -334,8 +332,10 @@
       </div>
     </div>
 
+
     <!-- Create Vacancy Modal -->
     <VacancyFormModal
+
         v-if="modal.open"
         :open="modal.open"
         :row="modal.row"
@@ -353,6 +353,7 @@ import {rolePositionApi, interviewStageApi} from '@/api.js'
 import {useI18n} from 'vue-i18n'
 import VacancyFormModal from './components/VacancyFormModal.vue'
 import StageSelect from './components/StageSelect.vue'
+import {useToast} from "vue-toastification";
 
 const {t} = useI18n({useScope: 'global'})
 
@@ -369,6 +370,7 @@ const availableFirstPage = ref([])
 const optionsLoading = ref(false)
 
 const stages = reactive({})
+const toast = useToast();
 
 function ensureStageState(rowId) {
   if (!stages[rowId]) stages[rowId] = {saving: false, items: [], selected: []}
@@ -491,7 +493,9 @@ async function reloadAll() {
 
 /* vacancy modal */
 function openCreate(row) {
-  modal.value = {open: true, row, rolePositionId: row.id, initial: {slots: Math.max(1, need(row))}}
+  let rowClone = {...row}
+  rowClone.vacancy = null
+  modal.value = {open: true, rowClone, rolePositionId: row.id, initial: {slots: Math.max(1, need(row))}}
 }
 
 async function onSavedVacancy() {
@@ -524,6 +528,8 @@ async function saveSelectedStages(row, normalized) {
     s.selected = s.items.map(({id, name}) => ({id, name}))
     row.interview_stages = normalized
     row.stages = normalized
+    toast.success(t('stages_saved'));
+
   } finally {
     s.saving = false
   }

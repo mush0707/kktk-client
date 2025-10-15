@@ -54,9 +54,7 @@
             class="px-3 py-2 rounded-xl border border-gray-300 w-72"
             :placeholder="$t('search_placeholder') || 'Փնտրել (անուն/էլ․ փոստ)…'"
         />
-        <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" @click="resetAndReload">
-          {{ $t('refresh') || 'Թարմացնել' }}
-        </button>
+
       </div>
     </div>
 

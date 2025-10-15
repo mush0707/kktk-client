@@ -24,11 +24,11 @@
             <input v-model.trim="form.email" type="email" class="w-full px-3 py-2 rounded-xl border border-gray-300"/>
           </div>
           <div class="flex flex-col gap-y-2">
-            <label class="text-sm text-gray-600">Հեռախոս</label>
+            <label class="text-sm text-gray-600">Հեռախոս <span class="text-red-600">*</span></label>
             <input v-model.trim="form.phone" class="w-full px-3 py-2 rounded-xl border border-gray-300"/>
           </div>
           <div>
-            <label class="text-xs text-slate-500">{{ $t('gender') || 'Սեռ' }}</label>
+            <label class="text-xs text-slate-500">{{ $t('gender') || 'Սեռ' }}<span class="text-red-600">*</span></label>
             <select
                 v-model="form.gender"
                 class="w-full px-3 py-2 rounded-xl border border-gray-300"
@@ -39,7 +39,7 @@
             </select>
           </div>
           <div>
-            <label class="text-xs text-slate-500">{{ $t('birth_date') || 'Ծննդյան ամսաթիվ' }}</label>
+            <label class="text-xs text-slate-500">{{ $t('birth_date') || 'Ծննդյան ամսաթիվ' }}<span class="text-red-600">*</span></label>
             <DatePicker
                 :teleport="true"
                 z-index="3000"
@@ -48,6 +48,8 @@
                 :clearable="false"
                 :placeholder="$t('select_date')"
                 v-model="form.birth_date"
+                :max-date="maxDate"
+                :flow="flow"
             ></DatePicker>
           </div>
         </div>
@@ -94,6 +96,7 @@ const form = ref({
   birth_date:''
 })
 const formError = ref('')
+const flow = ref(['year','month', 'calendar']);
 
 
 const saving = ref(false)
@@ -120,7 +123,6 @@ function validate(): string {
   if(!form.value.first_name?.trim()) return 'Անուն *'
   if(!form.value.last_name?.trim())  return 'Ազգանուն *'
   if(!form.value.email?.trim())      return 'Email *'
-  // փաստաթղթերը կամընտիր են. ոչ մի հավելյալ ստուգում
   return ''
 }
 
@@ -130,7 +132,7 @@ function validate(): string {
 
 async function submit(){
   formError.value = validate()
-  if(formError.value) return
+  // if(formError.value) return
   saving.value = true
   try{
     const fd = new FormData()
@@ -139,10 +141,11 @@ async function submit(){
     fd.append('email', form.value.email)
     fd.append('phone', form.value.phone || '')
     fd.append('gender', form.value.gender || '')
-    const d = new Date(form.value.birth_date)
-    form.value.birth_date = d.toISOString().slice(0, 10)
-    fd.append('birth_date', form.value.birth_date || '')
-
+    if (form?.value?.birth_date) {
+      const d = new Date(form?.value?.birth_date)
+      form.value.birth_date = d?.toISOString()?.slice(0, 10)
+      fd.append('birth_date', form.value.birth_date || '')
+    }
     if (isEdit.value && props.modelValue?.id) {
       await candidateApi.update(props.modelValue.id, fd)
     } else {
@@ -164,5 +167,11 @@ watch(() => props.open, (v) => {
 
 onMounted(async () => {
    if(props.open) seedForm()
+})
+
+const  maxDate = computed(() => {
+  const d = new Date()
+  d.setFullYear(d.getFullYear() - 18)
+  return d.toISOString().slice(0, 10)
 })
 </script>

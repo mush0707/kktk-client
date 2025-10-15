@@ -338,7 +338,7 @@
 
             <div>
               <strong class="block text-gray-600">{{ $t('address_city') }}:</strong>
-              <span class="text-gray-900">{{ employee.address_city }}</span>
+              <span class="text-gray-900">{{ getCity(employee.address_city) }}</span>
             </div>
 
 
@@ -543,6 +543,47 @@ onMounted(async () => {
   await getContractDocType()
 })
 
+const armeniaCities = [
+  { code: 'Yerevan', name: 'Երևան' },
+  { code: 'Gyumri', name: 'Գյումրի' },
+  { code: 'Vanadzor', name: 'Վանաձոր' },
+  { code: 'Vagharshapat', name: 'Էջմիածին' },
+  { code: 'Hrazdan', name: 'Հրազդան' },
+  { code: 'Abovyan', name: 'Աբովյան' },
+  { code: 'Kapan', name: 'Կապան' },
+  { code: 'Armavir', name: 'Արմավիր' },
+  { code: 'Stepanavan', name: 'Ստեփանավան' },
+  { code: 'Gavar', name: 'Գավառ' },
+  { code: 'Sevan', name: 'Սևան' },
+  { code: 'Charentsavan', name: 'Չարենցավան' },
+  { code: 'Ijevan', name: 'Իջևան' },
+  { code: 'Ararat', name: 'Արարատ' },
+  { code: 'Artashat', name: 'Արտաշատ' },
+  { code: 'Masis', name: 'Մասիս' },
+  { code: 'Dilijan', name: 'Դիլիջան' },
+  { code: 'Sisian', name: 'Սիսիան' },
+  { code: 'Martuni', name: 'Մարտունի' },
+  { code: 'Ashtarak', name: 'Աշտարակ' },
+  { code: 'Spitak', name: 'Սպիտակ' },
+  { code: 'Tashir', name: 'Տաշիր' },
+  { code: 'Meghri', name: 'Մեղրի' },
+  { code: 'Noyemberyan', name: 'Նոյեմբերյան' },
+  { code: 'Vardenis', name: 'Վարդենիս' },
+  { code: 'Aparan', name: 'Ապարան' },
+  { code: 'Byureghavan', name: 'Բյուրեղավան' },
+  { code: 'Maralik', name: 'Մարալիկ' },
+  { code: 'Yeghvard', name: 'Եղվարդ' },
+  { code: 'Alaverdi', name: 'Ալավերդի' },
+  { code: 'Agarak', name: 'Ագարակ' },
+  { code: 'Talin', name: 'Թալին' },
+  { code: 'Vedi', name: 'Վեդի' },
+  { code: 'Shamlugh', name: 'Շամլուղ' },
+  { code: 'Jermuk', name: 'Ջերմուկ' }
+]
+
+const getCity = (code: string) => {
+  return armeniaCities.find((e) => e.code === code)?.name ?? code;
+}
 const getDocType = async () => {
   const response = await employeesApi.getDocTypes()
   types.value = response.data

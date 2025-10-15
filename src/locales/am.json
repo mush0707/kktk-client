@@ -440,7 +440,7 @@
   "birth_date": "Ծննդյան ամսաթիվ",
   "gender": "Սեռ",
   "citizenship": "Քաղաքացիություն",
-  "national_id": "Անձն․/սոց․ քարտ/ID",
+  "national_id": "Անձնագիր/ID քարտ",
   "contacts": "Կոնտակտներ",
   "marital_status": "Կարգավիճակ",
   "address_country": "Երկիր",
@@ -521,7 +521,7 @@
   "years_count": "Տարիների քանակ",
   "affects_balance": "Վճարովի",
   "days_count": "Օրերի քանակ",
-  "months_after_contract_start": "Ուժի մեջ է մտնում",
+  "months_after_contract_start": "Ուժի մեջ է մտնում (ամիսներ)",
   "months_after": "Ամիս հետո",
   "nothing_found": "Ցուցակը դատարկ է",
   "extension": "ֆայլի տեսակ",
@@ -638,5 +638,11 @@
   "on_hold": "Կանգնեցված",
   "as_waste": "Որպես աղբ",
   "requests": "Հարցումներ",
-  "hr_requests": "Կադրերի Բաժին"
+  "hr_requests": "Կադրերի Բաժին",
+  "stages_saved": "Փուլերը հաջողությամբ պահպանվեցին",
+  "shown": "ցուցադրված",
+  "candidate_added": "Թեկնածուն հաջողությամբ ավելացվեց",
+  "candidate_removed": "Թեկնածուն հաջողությամբ հեռացվեց",
+  "edit_vacancy": "Խմբագրել թափուր աշխատատեղը",
+  "leave_type_years": "հաճախականությունը տարիներով"
 }

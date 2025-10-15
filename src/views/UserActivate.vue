@@ -27,7 +27,7 @@
                  minlength="8" required/>
         </div>
 
-        <button :disabled="loading" class="w-full rounded-xl px-4 py-2 border bg-black text-white disabled:opacity-50">
+        <button :disabled="loading" class="w-full rounded-xl px-4 py-2 border bg-blue-600 text-white disabled:opacity-50">
           {{ loading ? 'Ակտիվացվում է…' : 'Սահմանել գաղտնաբառը և շարունակել' }}
         </button>
       </form>

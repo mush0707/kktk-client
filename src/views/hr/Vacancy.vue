@@ -66,9 +66,6 @@
               }}
             </option>
           </select>
-          <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" :disabled="loading" @click="reloadAll(true)">
-            {{ t('refresh') || 'Թարմացնել' }}
-          </button>
         </div>
       </div>
 
@@ -93,7 +90,7 @@
               <template v-for="v in rows" :key="v.id">
                 <tr class="border-t align-top">
                   <td class="px-3 py-2 font-mono">#{{ v.id }}</td>
-                  <td class="px-3 py-2">{{ v.title ?? `Vacancy #${v.id}` }}</td>
+                  <td class="px-3 py-2">{{ v.title ?? `—` }}</td>
                   <td class="px-3 py-2 text-slate-700">
                     <div class="line-clamp-2">{{ v.description || '—' }}</div>
                   </td>
@@ -114,7 +111,7 @@
                     <div class="flex flex-wrap gap-2">
                       <button
                           v-if="(v.applications?.length || 0) > 0"
-                          class="px-3 py-1 text-xs rounded-md border hover:bg-gray-50"
+                          class="cursor-pointer px-3 py-1 text-xs rounded-md border"
                           @click="toggleOpen(v.id)"
                       >
                         {{ t('candidates') || 'Թեկնածուներ' }} ({{ v.applications.length }})
@@ -122,23 +119,23 @@
 
                       <button
                           v-if="canAddCandidates(v)"
-                          class="px-3 py-1 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
+                          class="cursor-pointer px-3 py-1 text-xs rounded-md bg-blue-600 text-white hover:bg-blue-700"
                           @click="openCandidates(v)"
                       >
                         {{ t('add_candidate') || 'Ավելացնել թեկնածու' }}
                       </button>
 
                       <template v-if="isPending(v)">
-                        <button class="px-3 py-1 text-xs rounded-md bg-green-600 text-white hover:bg-green-700"
+                        <button class="cursor-pointer px-3 py-1 text-xs rounded-md bg-green-600 text-white hover:bg-green-700"
                                 @click="approve(v)">
                           {{ t('approve') || 'Հաստատել' }}
                         </button>
-                        <button class="px-3 py-1 text-xs rounded-md bg-red-600 text-white hover:bg-red-700"
+                        <button class="cursor-pointer px-3 py-1 text-xs rounded-md bg-red-600 text-white hover:bg-red-700"
                                 @click="reject(v)">
                           {{ t('reject') || 'Մերժել' }}
                         </button>
                         <button
-                            class="px-3 py-1 text-xs rounded-md border hover:bg-gray-50"
+                            class="cursor-pointer px-3 py-1 text-xs rounded-md border   text-white bg-indigo-700 hover:bg-indigo-600"
                             @click="openEdit(v)"
 
                         >
@@ -152,12 +149,12 @@
 
                       <template v-else-if="isActive(v)">
                         <button
-                            class="px-3 py-1 text-xs rounded-md border hover:bg-gray-50"
+                            class="cursor-pointer px-3 py-1 text-xs rounded-md border text-white  bg-indigo-700 hover:bg-indigo-600"
                             @click="openEdit(v)"
                         >
                           {{ t('edit') || 'Խմբագրել' }}
                         </button>
-                        <button class="px-3 py-1 text-xs rounded-md border hover:bg-gray-50" @click="archive(v)">
+                        <button class="cursor-pointer px-3 py-1 text-xs rounded-md border bg-gray-400 text-white hover:bg-gray-500" @click="archive(v)">
                           {{ t('archive') || 'Արխիվացնել' }}
                         </button>
                       </template>
@@ -235,8 +232,8 @@
                                 </div>
                               </td>
 
-                              <td class="px-3 py-2">
-                                <div class="flex flex-wrap gap-2">
+                              <td class="px-3 py-2" v-if="v.status!=='closed'">
+                                 <div class="flex flex-wrap gap-2">
                                   <!-- Start interview -->
                                   <button
                                       v-if="hasStages(v) && isInReview(a)"
@@ -246,25 +243,26 @@
                                     {{ t('interview') || 'Հարցազրույց' }}
                                   </button>
 
-                                  <!-- NEXT: show only while interviewing AND when there is a next stage -->
+                                   <!-- NEXT: show only while interviewing AND when there is a next stage -->
                                   <button
                                       v-if="hasStages(v) && isInterviewing(a) && hasNextStage(v, a)"
-                                      class="px-3 py-1 text-xs rounded-md border"
+                                      class="cursor-pointer px-3 py-1 text-xs rounded-md border"
                                       @click="nextStage(v, a)"
                                   >
-                                    {{ t('next') || 'Հաջ.' }}
+
+                                    {{nextStageOf(v,a.meta.stage_id)?.name}}
                                   </button>
 
                                   <!-- Hide Hire/Reject only when final -->
                                   <template v-if="!isFinal(a)">
                                     <button
-                                        class="px-3 py-1 text-xs rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
+                                        class="cursor-pointer px-3 py-1 text-xs rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-60"
                                         @click="hire(v, a)"
                                         :disabled="!canHire(v, a)"
                                     >
                                       {{ t('hire') || 'Ընդունել' }}
                                     </button>
-                                    <button class="px-3 py-1 text-xs rounded-md bg-red-600 text-white hover:bg-red-700"
+                                    <button class="cursor-pointer px-3 py-1 text-xs rounded-md bg-red-600 text-white hover:bg-red-700"
                                             @click="rejectApp(v, a)">
                                       {{ t('reject') || 'Մերժել' }}
                                     </button>
@@ -635,12 +633,13 @@ import {computed, nextTick, onMounted, reactive, ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {useI18n} from 'vue-i18n'
 import {candidateApi, vacancyApi} from '@/api.js'
+import {useToast} from "vue-toastification";
 
 const {t} = useI18n({useScope: 'global'})
 const router = useRouter()
 
 const uiError = ref('')
-
+const toast = useToast();
 /* Enums (canonical) */
 const VACANCY = Object.freeze({PENDING: 'pending', CANCELED: 'canceled', ACTIVE: 'active', CLOSED: 'closed'})
 /* NOTE: API may send "interview" or "interviewing". We normalize below. */
@@ -718,6 +717,7 @@ function firstStage(v) {
 }
 
 function nextStageOf(v, stageId) {
+  console.log(v)
   const arr = getStages(v)
   const sid = String(stageId)
   const idx = arr.findIndex(s => String(s.id) === sid)
@@ -1080,6 +1080,7 @@ async function addCandidate(c) {
         }]
       }
     }
+    toast.success(t('candidate_added'))
   } catch (e) {
     console.error('attachCandidate error', e)
     uiError.value = t('error_generic') || 'Սխալ է տեղի ունեցել'
@@ -1095,6 +1096,8 @@ async function removeCandidate(c) {
     if (row?.applications?.length) {
       row.applications = row.applications.filter(a => a?.candidate_id !== c.id)
     }
+    toast.success(t('candidate_removed'))
+
   } catch (e) {
     console.error('detachCandidate error', e)
     uiError.value = t('error_generic') || 'Սխալ է տեղի ունեցել'

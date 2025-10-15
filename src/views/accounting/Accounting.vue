@@ -13,9 +13,8 @@
           <p class="font-semibold">{{$t('invoices')}}</p>
         </RouterLink>
         <RouterLink :to="'/payrolls'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
-          <p class="font-semibold">Աշխատատավարձ</p>
+          <p class="font-semibold">Աշխատավարձ</p>
         </RouterLink>
-
       </div>
     </div>
   </div>

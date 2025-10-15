@@ -32,40 +32,36 @@
             <input
                 v-model.number="form.days"
                 type="number"
-                min="0"
+                min="1"
                 class="w-full px-3 py-2 rounded-xl border border-gray-300"
-                placeholder="օր. 20"
             />
           </div>
 
           <div class="flex flex-col gap-y-2">
-            <label class="text-sm text-gray-600">Տարիների քանակ</label>
+            <label class="text-sm text-gray-600">{{ $t('leave_type_years') }} <span class="text-red-600">*</span></label>
             <input
                 v-model.number="form.years_count"
                 type="number"
                 min="1"
                 class="w-full px-3 py-2 rounded-xl border border-gray-300"
-                placeholder="օր. 1"
             />
           </div>
 
           <div class="flex flex-col gap-y-2">
-            <label class="text-sm text-gray-600">{{$t('months_after_contract_start')}}</label>
+            <label class="text-sm text-gray-600">{{$t('months_after_contract_start')}} <span class="text-red-600">*</span></label>
             <input
                 v-model.number="form.months_after_contract_start"
                 type="number"
                 min="1"
                 class="w-full px-3 py-2 rounded-xl border border-gray-300"
-                placeholder="օր. 6"
             />
           </div>
 
           <div class="flex flex-col gap-y-2">
-            <label class="text-sm text-gray-600">{{$t('affects_balance')}}</label>
+            <label class="text-sm text-gray-600">{{$t('affects_balance')}} <span class="text-red-600">*</span></label>
             <select
                 v-model="form.affects_balance"
-                class="w-full px-3 py-2 rounded-xl border border-gray-300"
-            >
+                class="w-full px-3 py-2 rounded-xl border border-gray-300">
               <option :value="true">Այո</option>
               <option :value="false">Ոչ</option>
             </select>
@@ -74,8 +70,7 @@
 
         <div
             v-if="formError"
-            class="rounded-xl border border-red-200 bg-red-50 text-red-800 p-2 text-sm"
-        >
+            class="rounded-xl border border-red-200 bg-red-50 text-red-800 p-2 text-sm">
           {{ formError }}
         </div>
 
@@ -99,7 +94,7 @@
 
 <script setup lang="ts">
 import {computed, onMounted, ref, watch} from 'vue'
-import {type LeaveType, leaveTypeApi} from '@/api.ts' // adjust to your API path
+import { leaveTypeApi} from '@/api.ts' // adjust to your API path
 
 const props = defineProps<{
   open: boolean
@@ -110,21 +105,22 @@ const emit = defineEmits<{
   (e: 'saved'): void
 }>()
 
+
 const isEdit = computed(() => !!props.modelValue?.id)
 
 const form = ref({
   name: '',
-  days: 0,
+  days: 1,
   years_count: 1,
   affects_balance: true,
-  months_after_contract_start: true
+  months_after_contract_start: 6
 })
 const formError = ref('')
 const saving = ref(false)
 
 function seedForm() {
   if (!props.modelValue) {
-    form.value = {name: '', days: 0, years_count: 1, affects_balance: true}
+    form.value = {name: '', days: 24, years_count: 1, affects_balance: true, months_after_contract_start: 6}
     return
   }
 
