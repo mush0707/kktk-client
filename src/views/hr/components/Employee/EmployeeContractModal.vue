@@ -83,35 +83,73 @@
         <!-- Work Schedule (Preset select + auto-fill) -->
         <section class="space-y-3">
           <div class="font-medium">{{ $t('work_schedule') || 'Աշխատաժամերի գրաֆիկ' }}</div>
+
           <div class="border rounded-xl p-4 bg-gray-50 grid md:grid-cols-2 gap-4">
             <div class="md:col-span-2">
-              <label class="text-sm text-gray-600">Գրաֆիկ <span class="text-red-600">*</span></label>
-              <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
-                <select v-model="presetKey" @change="applyPreset" class="w-full px-3 py-2 rounded-xl border border-gray-300">
+              <label class="text-sm text-gray-600">Name <span class="text-red-600">*</span></label>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                <select v-model="presetKey" @change="applyPreset"
+                        class="w-full px-3 py-2 rounded-xl border border-gray-300">
                   <option :value="''" disabled>{{ $t('select') || 'Ընտրել' }}</option>
-                  <option v-for="opt in filteredPresets" :key="opt.key" :value="opt.key">{{ opt.label }}</option>
-                  <option v-if="form.contract.work_time_type === 'part'" :selected="true" value="custom">+ Այլ</option>
-                  <option v-else value="custom">+ Այլ</option>
+                  <option v-for="opt in schedulePresets" :key="opt.key" :value="opt.key">
+                    {{ opt.label }}
+                  </option>
+                  <option v-if="form.contract.work_time_type === 'part'" value="custom">+ Custom</option>
+                  <option v-else value="custom">+ Custom</option>
                 </select>
-
-              </div>
-              <div class="grid mt-2 grid-cols-1 md:grid-cols-1 gap-2">
                 <input
-                    v-if="presetKey === 'custom'"
                     v-model.trim="form.schedule.name"
                     :disabled="presetKey !== 'custom'"
                     class="w-full px-3 py-2 rounded-xl border border-gray-300 disabled:bg-gray-100"
                     placeholder="օր.՝ 5-օրյա 8 ժամ / 24/48"
                 />
-
               </div>
               <p v-if="showRequired && !form.schedule.name" class="text-xs text-red-600">
-                {{ $t('field_required') || 'Պարտադիր դաշտ' }}
-              </p>
+                {{ $t('field_required') || 'Պարտադիր դաշտ' }}</p>
+            </div>
+
+            <!-- Summed -->
+            <div>
+              <div class="flex items-center gap-2">
+                <input id="sum-acc" type="checkbox" v-model="form.schedule.is_sum_accounting" class="h-4 w-4"/>
+                <label for="sum-acc" class="text-sm text-gray-700">{{ $t('is_sum_accounting') }}</label>
+                <span v-if="form.schedule.is_sum_accounting"
+                      class="ml-2 text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-800">
+                  {{ $t('summed') || 'Գումարային' }}
+                </span>
+              </div>
+
+              <div v-if="form.schedule.is_sum_accounting" class="mt-2 space-y-2">
+                <label class="text-sm text-gray-600">{{ $t('period_days') }} <span class="text-red-600">*</span></label>
+                <input type="number" min="1" v-model.number="form.schedule.period_days"
+                       class="w-full px-3 py-2 rounded-xl border border-gray-300" placeholder="օր.՝ 30 կամ 90"/>
+                <p v-if="showRequired && (!form.schedule.period_days || form.schedule.period_days < 1)"
+                   class="text-xs text-red-600">
+                  {{ $t('enter_valid_value') || 'Մուտքագրեք ճիշտ արժեք' }}
+                </p>
+                <p class="text-[11px] text-gray-500">
+                  {{ $t('sum_accounting_hint') || 'Գումարային հաշվառում՝ նորման հաշվարկային շրջանի կտրվածքով' }}</p>
+              </div>
+            </div>
+
+            <!-- Pattern (non-summed) -->
+            <div v-if="!form.schedule.is_sum_accounting" class="md:col-span-2">
+              <div class="text-sm text-gray-600 mb-1">(օր/ժամ)</div>
+              <div class="grid grid-cols-2 md:grid-cols-2 gap-2">
+                <div v-for="d in 7" :key="d" class="flex items-center gap-2">
+                  <span class="text-xs w-10">{{ DOW[(d - 1 + 7) % 7] }}</span>
+                  <input type="number" min="0" step="0.5" v-model.number="form.schedule.patternMap[d]"
+                         class="flex-1 border rounded-xl px-2 py-1"/>
+                </div>
+              </div>
+              <div class="mt-1 text-xs text-slate-600">
+                {{ $t('week_hours') || 'Շաբաթվա ընդհանուր ժամեր' }}: <b>{{ weeklyHours }}</b>
+              </div>
+              <p v-if="patternError" class="text-xs text-red-600 mt-1">{{ patternError }}</p>
             </div>
           </div>
 
-          <!-- Assignment info -->
+          <!-- Assignment info (no extra dates) -->
           <div class="rounded-xl border p-3 bg-white text-[13px] text-slate-600">
             {{ $t('assignment_info') || 'Գրաֆիկը ավտոմատ կկցվի աշխատողին պայմանագրի օրերով' }}:
             <span class="px-1.5 py-0.5 rounded bg-gray-100 ml-1">{{ form.contract.start_date || '—' }}</span>
@@ -244,12 +282,18 @@ const form = reactive({
     patternMap: { 1: 8, 2: 8, 3: 8, 4: 8, 5: 8, 6: 0, 7: 0 } as Record<number, number>
   }
 })
+const DOW = ['Երկ', 'Երք', 'Չրք', 'Հնգ', 'Ուր', 'Շբթ', 'Կիր']
+
 
 /* ───────────────────────────── PRESETS UI ───────────────────────────── */
 const filteredPresets = computed(() => {
-  if (form.contract.work_time_type === 'full') return schedulePresets.filter(p => p.key === '5x8' || p.key === '6x7')
-  if (form.contract.work_time_type === 'shift') return schedulePresets.filter(p => p.key === '24_48' || p.key === '12_12')
-  if (form.contract.work_time_type === 'part') return [] // only custom
+  if (form.contract.work_time_type === 'full') {
+    return schedulePresets.filter(p => p.key === '5x8' || p.key === '6x7')
+  } else if (form.contract.work_time_type === 'shift') {
+    return schedulePresets.filter(p => p.key === '24_48' || p.key === '12_12')
+  } else if (form.contract.work_time_type === 'part') {
+    return [] // only allow custom
+  }
   return []
 })
 function applyPreset() {
@@ -261,7 +305,7 @@ function applyPreset() {
   form.schedule.patternMap = p.patternMap ? { ...p.patternMap } : { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 }
 }
 watch(() => form.contract.work_time_type, (newType) => {
-  presetKey.value = newType === 'part' ? 'custom' : ''
+  // presetKey.value = newType === 'part' ? 'custom' : ''
   applyPreset()
 })
 
@@ -323,13 +367,24 @@ async function submit() {
     fd.append('contract[status]', form.contract.status)
     selectedLeaveTypeIds.value.forEach(id => fd.append('contract[leave_type_ids][]', String(id)))
 
-    fd.append('work_schedule[name]', form.schedule.name)
-    fd.append('work_schedule[is_sum_accounting]', 'true')
-    fd.append('work_schedule[period_days]', String(form.schedule.period_days))
-    fd.append('work_schedule[pattern]', '')
+     fd.append('work_schedule[name]', form.schedule.name);
+     fd.append('work_schedule[is_sum_accounting]', form.schedule.is_sum_accounting ? 1 : 0);
+     fd.append('work_schedule[period_days]', form.schedule.is_sum_accounting ? (form.schedule.period_days || '') : '');
 
-    fd.append('work_scheduling[start_date]', form.contract.start_date)
-    fd.append('work_scheduling[end_date]', form.contract.end_date || '')
+// If not sum accounting, add pattern days
+     if (!form.schedule.is_sum_accounting) {
+       [1, 2, 3, 4, 5, 6, 7].forEach((d, i) => {
+         const hours = Number(form.schedule.patternMap[d] || 0);
+         fd.append(`work_schedule[pattern][${i}][dow]`, d);
+         fd.append(`work_schedule[pattern][${i}][hours]`, hours);
+       });
+     } else {
+       // still send empty pattern (optional, depending on backend expectations)
+       fd.append('work_schedule[pattern]', '');
+     }
+
+     fd.append('work_scheduling[start_date]', form.contract.start_date);
+     fd.append('work_scheduling[end_date]', form.contract.end_date || '');
 
     for (const t of docTypes.value) {
       const files = uploads.value[t.id] || []
