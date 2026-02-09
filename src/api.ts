@@ -6,7 +6,7 @@ export type Storage = { id: ID; address: string; industrial: boolean };
 export type StorageProduct = {
     id: ID; storage_id: ID; product_id: ID; product?: Product;
     batch_no?: string | null; serial_no?: string | null;
-    qty_available: number;qty_reserved_production: number; qty_reserved_place: number; qty_reserved_dispatch: number;
+    qty_available: number; qty_reserved_production: number; qty_reserved_place: number; qty_reserved_dispatch: number;
     manufacturing_order_id?: ID | null;
 };
 
@@ -37,7 +37,15 @@ export type ManufacturingOrder = {
     product_id?: ID | null; qty_planned?: number; qty_produced?: number;
     output_storage_id: ID; status: 'draft' | 'released' | 'in_progress' | 'completed' | 'cancelled';
 };
-
+const serializeParams = (params: Record<string, any>): string => {
+    const usp = new URLSearchParams()
+    Object.entries(params || {}).forEach(([k, v]) => {
+        if (v === undefined || v === null || v === '') return
+        if (Array.isArray(v)) v.forEach(x => usp.append(`${k}[]`, String(x)))
+        else usp.set(k, String(v))
+    })
+    return usp.toString()
+}
 import api from "@/utils/api.ts";
 
 export const mainApi = {
@@ -67,7 +75,7 @@ export const supplierDemandsApi = {
             params: payload
         }).then(r => r.data.data)
     },
-    async finish(id:number){
+    async finish(id: number) {
         const {data} = await api.patch(`/suppliers/demands/${id}/finish`);
         return data?.data;
     },
@@ -87,35 +95,35 @@ export const supplierDemandsApi = {
 export const demandsApi = {
     list: (params) => api.get('/demands', {params}).then(r => r.data.data),
     productList: (params) => api.get('/demands/products', {params}).then(r => r.data.data),
-    async cancel(id:number){
+    async cancel(id: number) {
         const {data} = await api.delete(`/demands/${id}`);
         return data?.data;
     },
-    async approve(id:number){
+    async approve(id: number) {
         const {data} = await api.patch(`/demands/${id}/approve`);
         return data?.data;
     },
-    async takeOfferingInProgress(id:number, offeringId:number){
+    async takeOfferingInProgress(id: number, offeringId: number) {
         const {data} = await api.patch(`/demands/${id}/offerings/${offeringId}/in-progress`);
         return data?.data;
     },
-    async finishOffering(id:number, offeringId:number){
+    async finishOffering(id: number, offeringId: number) {
         const {data} = await api.patch(`/demands/${id}/offerings/${offeringId}/finish`);
         return data?.data;
     },
-    async send(id:number){
+    async send(id: number) {
         const {data} = await api.patch(`/demands/${id}/send`);
         return data?.data;
     },
-    async get(id:number){
-        return api.get('/demands/'+id).then(r => r.data.data)
+    async get(id: number) {
+        return api.get('/demands/' + id).then(r => r.data.data)
     },
-    async save(payload:any){
+    async save(payload: any) {
         const {data} = await api.post('/demands/', payload)
         return data?.data
     },
-    async update(demandId, payload:any){
-        const {data} = await api.post('/demands/'+demandId, payload)
+    async update(demandId, payload: any) {
+        const {data} = await api.post('/demands/' + demandId, payload)
         return data?.data
     },
     availableProducts: (params) => api.get('/demands/active-order-products', {params}).then(r => r.data),
@@ -189,6 +197,14 @@ export const directoriesApi = {
         const {data} = await api.get("/departments", {params});
         return data?.data ?? data ?? [];
     },
+    async publicHolidays() {
+        const data = await api.get("/calendar/public-holidays");
+        return data?.data ?? data ?? [];
+    },
+    async departmentRoles(department_id) {
+        const {data} = await api.get("/departments/"+department_id+"/role-positions");
+        return data?.data ?? data ?? [];
+    },
 };
 
 export const suppliersApplicationsApi = {
@@ -246,9 +262,17 @@ export const purchasingApi = {
 
 }
 export const storagesApi = {
-    getMatchedStoragePointsByProductTypeId: (productTypeId) => api.get('/storages/list-by-product-type/'+productTypeId).then(r => r.data),
-    getResidueByProductId: (storageId, productId) => api.get('/storages/'+storageId+'/residue/'+productId).then(r => r.data),
-
+    getMatchedStoragePointsByProductTypeId: (productTypeId) => api.get('/storages/list-by-product-type/' + productTypeId).then(r => r.data),
+    getResidueByProductId: (storageId, productId) => api.get('/storages/' + storageId + '/residue/' + productId).then(r => r.data),
+    getQuickSales: (storageId, payload) => api.get('/storages/quick-sales/' + storageId, {
+        params: payload
+    }).then(r => r.data),
+    writtenOffQuickSale: (storageId, saleId) => api.post('/storages/quick-sales/' + storageId + '/' + saleId + '/written-off').then(r => r.data),
+    distributeQuickSaleProduct: (storageId, saleId, saleProductId, payload) => api.post('/storages/quick-sales/' + storageId + '/' + saleId + '/' + saleProductId + '/distribute', payload).then(r => r.data),
+    getQuickSaleItemReserves(storageId, saleId, saleProductId) {
+        return api.get('/storages/quick-sales/' + storageId + '/' + saleId + '/' + saleProductId)
+            .then(r => r.data.data)
+    },
 }
 export const interviewStageApi = {
     list: (params) => api.get('/interview-stages', {
@@ -345,8 +369,8 @@ export const candidateApi = {
 
 export const purchasingPartnerApi = {
     list: (params) => api.get('/purchasing/partners', {params}).then(r => r.data),
-    get: (id) => api.get('/purchasing/partners/'+id).then(r => r.data),
-    getContracts: (id) => api.get('/purchasing/partners/'+id+'/contracts', {params}).then(r => r.data),
+    get: (id) => api.get('/purchasing/partners/' + id).then(r => r.data),
+    getContracts: (id) => api.get('/purchasing/partners/' + id + '/contracts', {params}).then(r => r.data),
     async create(payload) {
         const {data} = await api.post("/purchasing/partners", payload);
         return data;
@@ -361,7 +385,7 @@ export const purchasingPartnerApi = {
 export const purchasingOrdersApi = {
     // view
     list(params) {
-        return api.get('/purchasing/orders', { params })
+        return api.get('/purchasing/orders', {params})
     },
     getById(id) {
         return api.get(`/purchasing/orders/${id}`)
@@ -405,7 +429,12 @@ export const purchasingOrdersApi = {
     rejectProduct(id, productId) {
         return api.delete(`/purchasing/orders/${id}/products/${productId}`)
     },
-
+    updateContractDocument(orderId, contractId, formData /* multipart */) {
+        // formData: type_id, documents[]
+        return api.post(`/purchasing/orders/${orderId}/contracts/${contractId}/documents`, formData, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        })
+    },
     // ուղղում՝ offeringId
     rejectOffering(orderId, offeringId) {
         return api.delete(`/purchasing/orders/${orderId}/offerings/${offeringId}`)
@@ -415,34 +444,7 @@ export const purchasingOrdersApi = {
     storeContract(orderId, formData /* multipart */) {
         // formData: partner_id, start_date, finished_date, documents[0][type_id], documents[0][documents]...
         return api.post(`/purchasing/orders/${orderId}/contracts`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        })
-    },
-    updateContractDocument(orderId, contractId, formData /* multipart */) {
-        // formData: type_id, documents[]
-        return api.post(`/purchasing/orders/${orderId}/contracts/${contractId}/documents`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        })
-    },
-    // ուղղում՝ offeringId
-    rejectOffering(orderId, offeringId) {
-        return api.delete(`/purchasing/orders/${orderId}/offerings/${offeringId}`)
-    },
-    getActiveOrderDocTypes() {
-        return api.get('/purchasing/active-orders/doc-types')
-    },
-
-    // contracts
-    storeContract(orderId, formData /* multipart */) {
-        // formData: partner_id, start_date, finished_date, documents[0][type_id], documents[0][documents]...
-        return api.post(`/purchasing/orders/${orderId}/contracts`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
-        })
-    },
-    updateContractDocument(orderId, contractId, formData /* multipart */) {
-        // formData: type_id, documents[]
-        return api.post(`/purchasing/orders/${orderId}/contracts/${contractId}/documents`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: {'Content-Type': 'multipart/form-data'}
         })
     },
     getActiveOrderDocTypes() {
@@ -451,7 +453,7 @@ export const purchasingOrdersApi = {
     activate(orderId, formData) {
         // ենթադրում ենք POST multipart
         return api.post(`/purchasing/orders/${orderId}/activate`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: {'Content-Type': 'multipart/form-data'}
         })
     },
 }
@@ -500,7 +502,7 @@ export const storageEntriesApi = {
     accept: (storageId, id) => api.patch(`/storages/entries/${storageId}/accept/${id}`).then(r => r.data),
     storeProductionOrder: (storageId, id) => api.patch(`/storages/entries/${storageId}/create-production-order/${id}`).then(r => r.data),
     sendToWorkshop: (storageId, payload) => api.patch(`/storages/entries/${storageId}/send-to-production`, payload).then(r => r.data),
-    confirm: (storageId,id) => api.patch(`/storages/entries/${storageId}/confirm/${id}`).then(r => r.data),
+    confirm: (storageId, id) => api.patch(`/storages/entries/${storageId}/confirm/${id}`).then(r => r.data),
 }
 // ─────────────────────────────────────────────────────────────────────────────
 // Products (search for selector)
@@ -825,17 +827,17 @@ export const mfgApi = {
 
     getRawMaterials(storageId, params) {
         return api
-            .get(`/storages/manufacturing/products/${storageId}`, { params })
+            .get(`/storages/manufacturing/products/${storageId}`, {params})
             .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
     },
     getRawReserves(storageId, itemId, params) {
         return api
-            .get(`/storages/manufacturing/products/${storageId}/${itemId}/reserves`, { params })
+            .get(`/storages/manufacturing/products/${storageId}/${itemId}/reserves`, {params})
             .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
     },
     getOutputs(storageId, params) {
         return api
-            .get(`/storages/manufacturing/outputs/${storageId}`, { params })
+            .get(`/storages/manufacturing/outputs/${storageId}`, {params})
             .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
     },
     getOutputById(storageId, itemId) {
@@ -861,7 +863,7 @@ export const mfgApi = {
 export const mfgEntriesApi = {
     list(storageId, params) {
         return api
-            .get(`/storages/manufacturing/entries/${storageId}`, { params })
+            .get(`/storages/manufacturing/entries/${storageId}`, {params})
             .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
     },
     getById(storageId, entryId) {
@@ -883,7 +885,7 @@ export const mfgEntriesApi = {
 export const recycleOutputsApi = {
     getOutputs(storageId, params) {
         return api
-            .get(`/storages/manufacturing/recycle/outputs/${storageId}`, { params })
+            .get(`/storages/manufacturing/recycle/outputs/${storageId}`, {params})
             .then(r => Array.isArray(r.data?.data) ? r.data.data : (r.data ?? []))
     },
     getOutputById(storageId, itemId) {
@@ -905,16 +907,16 @@ export const recycleOutputsApi = {
     },
 }
 export const recycleEntriesApi = {
-    async list(storageId, { limit = 30, offset = 0, search, status } = {}) {
-        const { data } = await api.get(`/storages/manufacturing/recycle/entries/${storageId}`, {
-            params: { limit, offset, search, status }
+    async list(storageId, {limit = 30, offset = 0, search, status} = {}) {
+        const {data} = await api.get(`/storages/manufacturing/recycle/entries/${storageId}`, {
+            params: {limit, offset, search, status}
         })
         // backend returns a collection; normalize to array
         return Array.isArray(data) ? data : (data?.data ?? [])
     },
 
     async getById(storageId, entryId) {
-        const { data } = await api.get(`/storages/manufacturing/recycle/entries/${storageId}/${entryId}`)
+        const {data} = await api.get(`/storages/manufacturing/recycle/entries/${storageId}/${entryId}`)
         return data?.data ?? data
     },
 
@@ -932,18 +934,52 @@ export const recycleEntriesApi = {
 }
 
 export const employeesApi = {
-    list: (params) => api.get('/employees/staff-users', {params}).then(r => r.data),
+    workScheduling: {
+        activeEmployees: (departmentId, roleId, calendarMode) => api.get(`/work-scheduling/${departmentId.value}/${roleId.value}/active-employees?mode=${calendarMode.value}`).then(r => r.data),
+        scheduleAssignments: (params) => api.get(`/work-scheduling/schedule-assignments`,{
+            params: params
+        }).then(r => r.data),
+
+    },
+    overtimes: {
+        list: (params) => api.get('/employees/overtimes', {params}).then(r => r),
+        approve(overtimeId) {
+            return api.patch(`/employees/overtimes/${overtimeId}/approve`)
+        },
+        cancel(overtimeId) {
+            return api.delete(`/employees/overtimes/${overtimeId}/cancel`)
+        },
+        async storeTransfer(payload) {
+            const {data} = await api.post("/employees/overtimes/transfer", payload);
+            return data;
+        },
+        async createMany(payload) {
+            const {data} = await api.post("/employees/overtimes/many", payload);
+            return data;
+        },
+        getEmployeeOvertimes: (employeeId, day) => api.get(`/employees/overtimes/${employeeId}/${day}`).then(r => r.data),
+    },
+    list: (params) => api.get('/employees/staff-users', {params}).then(r => r),
     async create(payload) {
         const {data} = await api.post("/employees", payload);
         return data;
-    }, async update(id, payload) {
+    },
+    async update(id, payload) {
         const {data} = await api.post(`/employees/${id}`, payload, {
             headers: {'Content-Type': 'multipart/form-data'}
         });
 
         return data;
     },
+    async updateExist(id, payload) {
+        const {data} = await api.post(`/employees/${id}/exist`, payload, {
+            headers: {'Content-Type': 'multipart/form-data'}
+        });
+
+        return data;
+    },
     getDocTypes: () => api.get('/employees/doc-types').then(r => r.data),
+    getEmployeeContracts: (id) => api.get('/employee-contracts/'+id).then(r => r.data),
     async listDocuments(employeeId) {
         const {data} = await api.get(`/employees/${employeeId}/documents`)
         return data.data
@@ -969,6 +1005,10 @@ export const employeesApi = {
     },
     async transfer(id: number, role_position_id: number) {
         const {data} = await api.post(`/employees/${id}/transfer`, {role_position_id})
+        return data.data
+    },
+    async updateBankRequisites(id: number, payload) {
+        const {data} = await api.post(`/employees/${id}/bank-requisites`, payload)
         return data.data
     },
     async getLeaveBalances(id: number) {
@@ -1001,7 +1041,14 @@ export const contractsApi = {
         const {data} = await api.patch(`/employee-contracts/${id}/leave-types`, payload);
         return data;
     },
+    async updateBaseRate(id: number, payload: object) {
+        const {data} = await api.post(`/employee-contracts/${id}/base-rate`, payload);
+        return data;
+    },
     getDocTypes: () => api.get('/employee-contracts/doc-types').then(r => r.data),
+    civilContractEmployees: () => api.get('/employee-contracts/civil-contract-employees').then(r => r.data),
+    getPriceDocTypes: () => api.get('/employee-contracts/price/doc-types').then(r => r.data),
+    getPriceUpdatesList: (employeeId, contractId) => api.get('/employee-contracts/'+employeeId+'/'+contractId+'/base-rates').then(r => r.data),
     async uploadDocument(contractId: number, formData: any) {
         const {data} = await api.post(`/employee-contracts/${contractId}/documents`, formData, {
             headers: {'Content-Type': 'multipart/form-data'}
@@ -1018,6 +1065,18 @@ export const leaveTypeApi = {
     },
     update(id: number, payload: object) {
         return api.patch(`/leave-types/${id}`, payload).then(r => r.data)
+    },
+    activate(id: number) {
+        return api.patch(`/leave-types/${id}/activate`).then(r => r.data)
+    },
+    deactivate(id: number) {
+        return api.patch(`/leave-types/${id}/deactivate`).then(r => r.data)
+    },
+    attachHoliday(id: number, holiday_date_id: number) {
+        return api.put(`/leave-types/${id}/holidays/${holiday_date_id}`).then(r => r.data)
+    },
+    detachHoliday(leaveTypeId: number, holidayDateId: number) {
+        return api.delete(`/leave-types/${leaveTypeId}/holidays/${holidayDateId}`).then(r => r.data)
     },
 }
 export const leaveRequestApi = {
@@ -1055,6 +1114,7 @@ function getFilenameFromDisposition(disposition?: string, fallback = 'SRC_Payrol
     if (match?.[1]) return match[1];
     return fallback;
 }
+
 export const payrollApi = {
     getUnpaid(params: any) {
         return api.get('/payrolls/unpaid', {
@@ -1073,8 +1133,8 @@ export const payrollApi = {
     async downloadDeclarations(payroll_ids: number[]) {
         const res = await api.post(
             '/payrolls/download/declarations',
-            { payroll_ids },
-            { responseType: 'blob' }
+            {payroll_ids},
+            {responseType: 'blob'}
         );
 
         // axios headers case-insensitive է, բայց անվտանգ է վերցնել bracket-ով
@@ -1082,7 +1142,7 @@ export const payrollApi = {
 
         const filename = getFilenameFromDisposition(
             disposition,
-            `SRC_Payroll_Upload_${new Date().toISOString().slice(0,10)}.xlsx`
+            `SRC_Payroll_Upload_${new Date().toISOString().slice(0, 10)}.xlsx`
         );
 
         const blob = new Blob([res.data], {
@@ -1101,15 +1161,18 @@ export const payrollApi = {
     },
     payPayroll: async (payroll_ids: number[]) => {
         return api.post(`/payrolls/pay`, {payroll_ids}).then(r => r.data)
+    },
+    storeWithOfferings: async (payload) => {
+        return api.post(`/payrolls/store-with-offerings`, payload).then(r => r.data)
     }
 }
 export const recyclingMaterialsApi = {
     // GET /manufacturing/recycle/materials/{storage_id}
     list(storageId, params = {}) {
-        const { limit = 30, offset = 0, include, search } = params
+        const {limit = 30, offset = 0, include, search} = params
         return api
             .get(`/storages/manufacturing/recycle/materials/${storageId}`, {
-                params: { limit, offset, include, search },
+                params: {limit, offset, include, search},
             })
             .then((r) => r.data?.data ?? r.data)
     },
@@ -1132,10 +1195,10 @@ export const recyclingMaterialsApi = {
 }
 
 export const recyclingProduceApi = {
-    list(storageId, { limit = 30, offset = 0, search, status } = {}) {
+    list(storageId, {limit = 30, offset = 0, search, status} = {}) {
         return api
             .get(`/storages/manufacturing/produces/${storageId}`, {
-                params: { limit, offset, search, status },
+                params: {limit, offset, search, status},
             })
             .then(r => r.data);
     },
@@ -1178,9 +1241,9 @@ export const recyclingProduceApi = {
 export const recyclingProcessApi = {
 
     list(storageId, params = {}) {
-        const { search, limit = 20, offset = 0 } = params
+        const {search, limit = 20, offset = 0} = params
         return api.get(`/storages/manufacturing/recycle/processes/${storageId}`, {
-            params: { search, limit, offset },
+            params: {search, limit, offset},
         })
     },
 
@@ -1200,5 +1263,249 @@ export const recyclingProcessApi = {
     },
     cancel(storageId, recycleProduceId) {
         return api.delete(`/storages/manufacturing/recycle/processes/${storageId}/${recycleProduceId}`)
+    },
+}
+
+
+export const sales = {
+    discounts: {
+        list(params: DiscountListQuery) {
+            return api.get<{ data: Discount[] }>('sales/discounts', {
+                params,
+                paramsSerializer: serializeParams,
+            })
+        },
+        types(params: DiscountTypeListQuery) {
+            return api.get<{ data: DiscountType[] }>('sales/discounts/types', {
+                params,
+                paramsSerializer: serializeParams,
+            })
+        },
+        create(payload: {
+            type: string
+            name: string
+            percentage: number
+            from_date?: string | null
+            to_date?: string | null
+        }) {
+            return api.post('sales/discounts', payload)
+        },
+        update(id: number, payload: { type: string; name: string }) {
+            return api.put(`sales/discounts/${id}`, payload)
+        },
+        activate(id: number) { return api.patch(`sales/discounts/${id}/activate`) },
+        onHold(id: number)   { return api.patch(`sales/discounts/${id}/on-hold`) },
+        archive(id: number)  { return api.patch(`sales/discounts/${id}/archive`) },
+        cancel(id: number)   { return api.patch(`sales/discounts/${id}/cancel`) },
+        settings: {
+            list(params){ return api.get('sales/discounts/settings', { params }) },
+            store(payload){ return api.post('sales/discounts/settings', payload) },
+            activate(id){ return api.patch(`sales/discounts/settings/${id}/activate`) },
+            cancel(id){ return api.patch(`sales/discounts/settings/${id}/cancel`) },
+            archive(id){ return api.patch(`sales/discounts/settings/${id}/archive`) },
+            products: {
+                list(id, params){ return api.get(`sales/discounts/settings/${id}/products`, { params }) },
+                cancel(id, productId){ return api.patch(`sales/discounts/settings/${id}/products/${productId}/cancel`) },
+                archive(id, productId){ return api.patch(`sales/discounts/settings/${id}/products/${productId}/archive`) },
+            },
+            updatePeriod(id: number, payload: { from_date: string|null; to_date: string|null }) {
+                return api.put(`sales/discounts/settings/${id}/dates`, payload)
+            }
+        }
+    },
+    products: {
+        portions: {
+            productList(params: PortionListQuery) {
+                return api.get<{ data: ProductPortion[] }>('sales/products', {
+                    params,
+                    paramsSerializer: serializeParams,
+                })
+            },
+            list(payload) {
+                return api.get<{ data: ProductPortion }>(`sales/products/portions`, {
+                    params: payload
+                })
+            },
+            get(id: number, payload) {
+                return api.get<{ data: ProductPortion }>(`sales/products/portions/${id}`, {
+                    params: payload
+                })
+            },
+            create(payload: PortionStorePayload) {
+                return api.post('sales/products/portions', payload)
+            },
+            update(id: number, payload: PortionUpdatePayload) {
+                return api.put(`sales/products/portions/${id}`, payload)
+            },
+            activate(id: number)   { return api.patch(`sales/products/portions/${id}/activate`) },
+            sort(payload)   { return api.patch(`sales/products/portions/sort`, payload) },
+            cancel(id: number)     { return api.patch(`sales/products/portions/${id}/cancel`) },
+            archive(id: number)    { return api.patch(`sales/products/portions/${id}/archived`) },
+            // backend also has onHold(); route wasn’t exposed in your snippet; enable if added:
+            onHold(id: number)     { return api.patch(`sales/products/portions/${id}/on-hold`) },
+            discounts: {
+                // GET /sales/products/discounts
+                list: (params: ListQuery) =>
+                    api.get('/sales/products/portions/discounts', { params }),
+
+                // PATCH /sales/products/discounts/{portion_id}/{discount_id}
+                // attach discount to a portion
+                attach: (portionId: number, discountId: number) =>
+                    api.patch(`/sales/products/portions/discounts/${portionId}/${discountId}`),
+
+                // PATCH /sales/products/discounts/{portion_id}/activate
+                activate: (portionId: number) =>
+                    api.patch(`/sales/products/portions/discounts/${portionId}/activate`),
+
+                // PATCH /sales/products/discounts/{portion_id}/cancel
+                cancel: (portionId: number) =>
+                    api.patch(`/sales/products/portions/discounts/${portionId}/cancel`),
+
+                // PATCH /sales/products/discounts/{portion_id}/archive
+                archive: (portionId: number) =>
+                    api.patch(`/sales/products/portions/discounts/${portionId}/archive`),
+            },
+        },
+        stock: {
+            /** GET /sales/products/stock/{product_id} */
+            getByProductId(productId: number) {
+                return api.get<{ data: {
+                        qty_available: number
+                        qty_reserved_dispatch: number
+                        qty_reserved_production: number
+                    } }>(`sales/products/stock/${productId}`)
+            }
+        },
+    },
+    customers: {
+        list: (params: ListQuery) =>
+            api.get('/sales/customers', { params }),
+        discounts: {
+            // GET /sales/customers/discounts
+            list: (params: ListQuery) =>
+                api.get('/sales/customers/discounts', { params }),
+
+            // PATCH /sales/customers/discounts/{portion_id}/{product_id}/{discount_id}
+            // attach discount to a (portion, product) for customer-side flow
+            attach: (portionId: number, productId: number, discountId: number) =>
+                api.patch(`/sales/customers/discounts/${portionId}/${productId}/${discountId}`),
+
+            // PATCH /sales/customers/discounts/{portion_id}/activate
+            activate: (portionId: number) =>
+                api.patch(`/sales/customers/discounts/${portionId}/activate`),
+
+            // PATCH /sales/customers/discounts/{portion_id}/cancel
+            cancel: (portionId: number) =>
+                api.patch(`/sales/customers/discounts/${portionId}/cancel`),
+
+            // PATCH /sales/customers/discounts/{portion_id}/archive
+            archive: (portionId: number) =>
+                api.patch(`/sales/customers/discounts/${portionId}/archive`),
+        },
+    },
+    cashRegisters: {
+        list(params) {
+            return api.get('/sales/cash_registers', { params });
+        },
+        store(payload) {
+            // { storage_id }
+            return api.post('/sales/cash_registers', payload);
+        },
+        attachStaff(id, payload) {
+            // { staff_ids: number[] }
+            return api.put(`/sales/cash_registers/${id}/staff`, payload);
+        },
+        activate(id) {
+            return api.patch(`/sales/cash_registers/${id}/activate`);
+        },
+        onHold(id) {
+            return api.patch(`/sales/cash_registers/${id}/on-hold`);
+        },
+
+        fiscalPrinters: {
+            store(payload) {
+                // { cash_register_id, ip_address, cashier, pin, port, password }
+                return api.post('/sales/cash_registers/fiscal_printers', payload);
+            },
+            test(id) {
+                return api.put(`/sales/cash_registers/fiscal_printers/${id}/test`);
+            },
+            activate(id) {
+                return api.patch(`/sales/cash_registers/fiscal_printers/${id}/activate`);
+            },
+            print(id, payload) {
+                // { outputId, amount, card }
+                return api.post(`/sales/cash_registers/fiscal_printers/${id}`, payload);
+            }
+        }
+    },
+    sale: {
+        async check() {
+            return api.get<{ data: any | null }>('sales/sale/check');
+        },
+        // product search for POS
+        async searchProducts(params: { q?: string|null; barcode?: string|null; limit?: number; offset?: number }) {
+            return api.get<{ data: any[] }>('sales/sale/products', { params });
+        },
+        // create an output (sale)
+        async createOutput(payload: {
+            items: Array<{ product_id: number; qty: number; price?: number }>;
+            note?: string | null;
+            payment: { method: 'cash'|'card'|'mixed'; amount_cash?: number; amount_card?: number };
+        }) {
+            return api.post('sales/sale/outputs', payload);
+        },
+
+        // history
+        history: {
+            async list(params: { limit: number; offset: number; search?: string|null; date_from?: string|null; date_to?: string|null }) {
+                return api.get<{ data: any[] }>('sales/sale/outputs', { params });
+            },
+            async get(id: number) {
+                return api.get<{ data: any }>(`sales/sale/outputs/${id}`);
+            },
+            async cancel(id: number) {
+                return api.patch(`sales/sale/outputs/${id}/cancel`);
+            },
+            async cancelItem(id: number, itemId: number) {
+                return api.patch(`sales/sale/outputs/${id}/items/${itemId}/cancel`);
+            },
+        },
+    },
+}
+
+export const org = {
+    storages: {
+        search(params = {}) { return api.get('/storages', { params }); },
+    },
+    users: {
+        search(params = {}) { return api.get('/users', { params }); }, // expects {limit, offset, search}
+    }
+};
+
+// Holidays API (HR → Holidays)
+export const holidaysApi = {
+    // GET /holidays?limit&offset&search&year
+    list: (params) => api.get('/holidays', { params }).then(r => r.data),
+    dateList: (params) => api.get('/holidays/dates', { params }).then(r => r.data),
+    // POST /holidays   { name, fixed_month?, fixed_day? }
+    async create(payload) {
+        const { data } = await api.post('/holidays', payload)
+        return data
+    },
+
+    // PUT /holidays/{id}  { name, fixed_month?, fixed_day? }
+    update(id, payload) {
+        return api.put(`/holidays/${id}`, payload).then(r => r.data)
+    },
+
+    // POST /holidays/{holiday_id}/dates   { date:'YYYY-MM-DD' }
+    addDate(holidayId, payload) {
+        return api.post(`/holidays/${holidayId}/dates`, payload).then(r => r.data)
+    },
+
+    // PUT /holidays/{holiday_id}/dates/{holiday_date_id}  { date:'YYYY-MM-DD' }
+    updateDate(holidayId, holidayDateId, payload) {
+        return api.put(`/holidays/${holidayId}/dates/${holidayDateId}`, payload).then(r => r.data)
     },
 }

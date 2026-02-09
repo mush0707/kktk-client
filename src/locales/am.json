@@ -530,7 +530,7 @@
   "employee": "Աշխատակից",
   "leave_requests": "Արձակուրդի հայտեր",
   "reject_request": "Չեղարկել հայտը",
-  "comment": "Մեկնաբանուտուն",
+  "comment": "Մեկնաբանություն",
   "select_leave_type":"Ընտրել արձակուրդի տեսակը",
   "custom_type": "Այլ տեսակ",
   "part_of_order": "Գնումների պատվերի առարկա",
@@ -644,5 +644,12 @@
   "candidate_added": "Թեկնածուն հաջողությամբ ավելացվեց",
   "candidate_removed": "Թեկնածուն հաջողությամբ հեռացվեց",
   "edit_vacancy": "Խմբագրել թափուր աշխատատեղը",
-  "leave_type_years": "հաճախականությունը տարիներով"
+  "leave_type_years": "հաճախականությունը տարիներով",
+  "sales": "Վաճառքներ",
+  "create_discount": "Ստեղծել զեղչ",
+  "edit_discount": "Թարմացնել զեղչը",
+  "discount_percentage": "Զեղչի տոկոս",
+  "days_countdown": "Օրերի հաշվարկ",
+  "public_holidays": "Տոն օրեր",
+  "custom_leave_type": "Նոր պատճառ"
 }

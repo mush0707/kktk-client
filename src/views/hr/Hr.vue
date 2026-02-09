@@ -19,7 +19,7 @@
         </RouterLink>
 
         <RouterLink  v-if="canHrManage" :to="'/hr/candidates'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
-          <p class="font-semibold">Կանդիդատ</p>
+          <p class="font-semibold">Թեկնածուներ</p>
         </RouterLink>
 
         <RouterLink  v-if="canHrManage" :to="'/hr/employees'" class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow">
@@ -32,10 +32,10 @@
 
         <!-- Admin leave requests: show only if CAN hr.manage AND does NOT have employee.view -->
         <RouterLink
-            :to="'/hr/leave-requests'"
+            :to="'/hr/calendar-and-holidays'"
             class="block p-5 rounded-2xl border border-gray-300 bg-white hover:shadow"
         >
-          <p class="font-semibold">Արձակուրդների հայտեր (բոլորը)</p>
+          <p class="font-semibold">Օրացույց</p>
         </RouterLink>
       </div>
     </div>

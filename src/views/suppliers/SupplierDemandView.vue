@@ -218,7 +218,7 @@
 
                 <!-- Direct access to “fill rejected” drawer if this product still has pending -->
                 <button
-                    v-if="needsRefill(o)"
+                    v-if="needsRefill(o) && o.status === 'active'"
                     class="px-3 py-1 text-xs font-medium text-white bg-violet-600 rounded-md hover:bg-violet-700"
                     @click="openFillRejectedModal(o)"
                 >
@@ -424,7 +424,7 @@ const canSatisfyProducts = computed(() => {
 
 // Whether a single row needs refill (pending remains)
 function needsRefill(row: any) {
-  return num(row?.pending_qty) > 0;
+  return num(row?.qty) - num(row?.pending_qty) > 0;
 }
 
 const satisfying = ref(false);

@@ -154,7 +154,15 @@ function clearAvailSel() { availSel.value = [] }
 </script>
 
 <template>
-  <div class="space-y-6">
+  <div class="flex flex-col gap-y-2">
+    <div class="flex flex-col">
+      <div class="dark:border-gray-700 bg-white">
+        <div class="flex gap-x-2 items-center p-4 border-b rounded-md border-gray-200 text-xl">
+          <p>Դերեր</p>
+        </div>
+      </div>
+    </div>
+    <div class="space-y-6">
     <!-- Toast -->
     <div
         v-if="toast"
@@ -176,42 +184,37 @@ function clearAvailSel() { availSel.value = [] }
     </div>
 
     <!-- Header / actions -->
-    <div class="flex flex-wrap items-center gap-3">
-      <div class="min-w-0 flex-1">
-        <h1 class="text-xl font-semibold">Roles</h1>
-        <p class="text-sm opacity-70">Total: {{ rolesTotal }}</p>
-      </div>
-
+    <div class="px-4 flex flex-wrap items-center gap-3">
       <div class="relative">
         <input
             v-model="search"
-            class="w-64 rounded-xl border px-9 py-2 text-sm"
+            class="w-64 rounded-xl border border-gray-300 px-9 py-2 text-sm"
             placeholder="Search roles…"
         />
         <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔎</span>
       </div>
 
       <button class="rounded-xl bg-indigo-600 text-white px-4 py-2 text-sm" @click="openCreate">
-        + New Role
+        + Նոր դեր
       </button>
 
       <div class="ml-auto flex items-center gap-2">
         <button
-            class="rounded-xl border px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+            class="rounded-xl border border-gray-300 px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
             :disabled="syncing"
             @click="runSync(false)"
             title="Create permissions from route middleware"
         >
-          {{ syncing ? 'Refreshing…' : 'Refresh permissions' }}
+          {{ syncing ? 'Թարմացում…' : 'Թարմացնել հասանելիությունների ցանկը' }}
         </button>
       </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-2">
+    <div class="grid gap-6 lg:grid-cols-2 px-4">
       <!-- Roles list -->
-      <div class="rounded-2xl border shadow-sm">
+      <div class="rounded-2xl border border-gray-300 shadow-sm">
         <div class="flex items-center justify-between border-b p-3">
-          <div class="text-sm font-semibold">All Roles</div>
+          <div class="text-sm font-semibold">Բոլոր դերերը</div>
         </div>
 
         <ul>
@@ -223,12 +226,16 @@ function clearAvailSel() { availSel.value = [] }
           >
             <button class="truncate text-left hover:underline" @click="sel = r">
               <div class="font-medium">{{ r.name }}</div>
-              <div class="text-xs opacity-60">ID: {{ r.id }}</div>
+<!--              <div class="text-xs opacity-60">ID: {{ r.id }}</div>-->
             </button>
             <span class="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs">
             </span>
-            <button class="rounded border px-2 py-1 text-xs" @click="openEdit(r)">Edit</button>
-            <button class="rounded border px-2 py-1 text-xs" @click="remove(r)">Delete</button>
+            <button
+                class="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                @click="openEdit(r)">Փոփոխել</button>
+<!--            <button-->
+<!--                class="px-3 py-1 text-xs font-medium text-white bg-red-600 rounded-md hover:bg-red-700 disabled:opacity-50"-->
+<!--                @click="remove(r)">Ջնջել</button>-->
           </li>
 
           <li v-if="Array.isArray(roles) && roles.length === 0" class="p-3 text-sm opacity-70">
@@ -238,22 +245,22 @@ function clearAvailSel() { availSel.value = [] }
       </div>
 
       <!-- Assignment -->
-      <div class="rounded-2xl border shadow-sm">
-        <div class="flex items-center justify-between border-b p-3">
-          <div class="text-sm font-semibold">
-            Permissions for: <span class="font-bold">{{ sel?.name || '—' }}</span>
+      <div class="rounded-2xl border border-gray-300 shadow-sm">
+        <div v-if="sel?.name " class="flex items-center justify-between border-b p-3">
+          <div  class="text-sm font-semibold">
+            Հասանելիություններ՝ <span class="font-bold">«{{ sel?.name || '—' }}»</span>  դերի համար
           </div>
           <div v-if="sel" class="text-xs opacity-60">Role ID: {{ sel.id }}</div>
         </div>
 
         <div v-if="sel" class="grid gap-4 p-3 md:grid-cols-2">
           <!-- Assigned -->
-          <div class="overflow-hidden rounded-xl border">
+          <div class="overflow-hidden rounded-xl border border-green-500">
             <div class="flex items-center justify-between border-b bg-gray-50 p-2">
-              <div class="text-xs font-semibold">Assigned</div>
+              <div class="text-xs font-semibold">Կցված</div>
               <div class="flex items-center gap-2 text-xs">
-                <button class="rounded border px-2 py-0.5" @click="selectAllAssigned">Select all</button>
-                <button class="rounded border px-2 py-0.5" @click="clearAssignedSel">Clear</button>
+                <button class="rounded border px-2 py-0.5" @click="selectAllAssigned">Ընտրել բոլորը</button>
+                <button class="rounded border px-2 py-0.5" @click="clearAssignedSel">Մաքրել</button>
               </div>
             </div>
             <div class="max-h-80 space-y-1 overflow-auto p-2">
@@ -266,15 +273,15 @@ function clearAvailSel() { availSel.value = [] }
             </div>
             <div class="border-t p-2">
               <button class="rounded bg-rose-600 px-3 py-1 text-sm text-white disabled:opacity-50" @click="doDetach" :disabled="!assignedSel.length">
-                Detach selected
+                Հեռացնել ընտրվածը
               </button>
             </div>
           </div>
 
           <!-- Available -->
-          <div class="overflow-hidden rounded-xl border">
+          <div class="overflow-hidden rounded-xl border border-gray-300">
             <div class="flex items-center gap-2 border-b bg-gray-50 p-2">
-              <div class="text-xs font-semibold">Available</div>
+              <div class="text-xs font-semibold">Հասանելի</div>
               <input v-model="availSearch" class="ml-auto w-40 rounded border px-2 py-1 text-sm" placeholder="Search…" />
             </div>
             <div class="max-h-80 space-y-1 overflow-auto p-2">
@@ -283,31 +290,31 @@ function clearAvailSel() { availSel.value = [] }
                 <span class="truncate">{{ p.name }}</span>
                 <span class="ml-auto text-[11px] opacity-50">#{{ p.id }}</span>
               </label>
-              <div v-if="!avail?.data?.length" class="text-xs opacity-70">No results</div>
+              <div v-if="!avail?.data?.length" class="text-xs opacity-70">Տողեր չգտնվեցին</div>
             </div>
             <div class="border-t p-2">
               <button class="rounded bg-green-600 px-3 py-1 text-sm text-white disabled:opacity-50" @click="doAttach" :disabled="!availSel.length || !sel">
-                Attach selected
+                Կցել ընտրվածները
               </button>
-              <div class="mt-2 text-[11px] opacity-60">Search runs instantly.</div>
             </div>
           </div>
         </div>
 
-        <div v-else class="p-3 text-sm opacity-70">Select a role to manage permissions.</div>
+        <div v-else class="p-3 text-sm opacity-70">Ընտրել դեր հասանելիությունների ցանկը տեսնելու համար</div>
       </div>
     </div>
 
     <!-- Modal -->
     <div v-if="showForm" class="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4">
       <div class="w-full max-w-md rounded-2xl border bg-white p-4 shadow-2xl">
-        <div class="mb-2 text-lg font-semibold">{{ isEditing ? 'Edit role' : 'Create role' }}</div>
-        <input v-model="formName" class="w-full rounded border px-3 py-2 text-sm" placeholder="Role name" />
+        <div class="mb-2 text-lg font-semibold">{{ isEditing ? 'Փոփոխել դերը' : 'Ստեղծել նոր դեր' }}</div>
+        <input v-model="formName" class="w-full rounded border px-3 py-2 text-sm" placeholder="Դերի անվանում" />
         <div class="mt-3 flex justify-end gap-2">
           <button class="rounded border px-3 py-2 text-sm" @click="showForm = false">Cancel</button>
           <button class="rounded bg-indigo-600 px-3 py-2 text-sm text-white" @click="saveForm">Save</button>
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>

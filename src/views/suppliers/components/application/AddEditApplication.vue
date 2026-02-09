@@ -1207,7 +1207,23 @@ async function loadForEdit() {
     console.error('Failed to load application', e)
   }
 }
+function onDocumentPointer(e: Event) {
+  const t = e.target as Node | null
+  if (!t) return
 
+  // If click is inside either input, keep dropdowns open
+  if (prodSearchInput.value?.contains(t)) return
+  if (offSearchInput.value?.contains(t)) return
+
+  // If click is inside any of the teleported dropdowns, keep them open
+  const dds = document.querySelectorAll('.product-dd')
+  for (const el of Array.from(dds)) {
+    if (el.contains(t)) return
+  }
+
+  // Otherwise, clicked outside → close both
+  closeAllDd()
+}
 /* Lifecycle */
 onMounted(async () => {
   onScrollHandler = (e: Event) => {
@@ -1218,12 +1234,16 @@ onMounted(async () => {
   }
   window.addEventListener('scroll', onScrollHandler, true)
   window.addEventListener('resize', closeAllDd)
-
+  document.addEventListener('mousedown', onDocumentPointer, true)
+  document.addEventListener('touchstart', onDocumentPointer, true)
   await loadActor()
   await loadForEdit()
 })
 onBeforeUnmount(() => {
   if (onScrollHandler) window.removeEventListener('scroll', onScrollHandler, true)
   window.removeEventListener('resize', closeAllDd)
+
+  document.addEventListener('mousedown', onDocumentPointer, true)
+  document.addEventListener('touchstart', onDocumentPointer, true)
 })
 </script>

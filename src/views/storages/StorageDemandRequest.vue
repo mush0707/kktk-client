@@ -46,6 +46,7 @@
         </ol>
       </nav>
     </div>
+
     <div class="flex flex-col gap-3 px-4 py-4">
       <!-- Filters -->
       <div class="grid md:grid-cols-2 gap-2 items-end">
@@ -89,9 +90,9 @@
               <span class="text-xs text-gray-400 ml-2">({{ fromNow(row.created_at) }})</span>
             </td>
             <td class="px-4 py-3">
-              <span class="px-2 py-0.5 rounded text-xs" :class="statusClass(row.status)">
-                {{ statusLabel(row.status) }}
-              </span>
+                <span class="px-2 py-0.5 rounded text-xs" :class="statusClass(row.status)">
+                  {{ statusLabel(row.status) }}
+                </span>
             </td>
             <td class="px-4 py-3">
               <div class="flex flex-wrap gap-2">
@@ -102,7 +103,6 @@
                   Դիտել
                 </button>
 
-                <!-- awaiting_warehouse → allow approve / reject -->
                 <template v-if="row.status === 'awaiting_warehouse'">
                   <button
                       class="px-3 py-1 text-xs font-medium text-white bg-emerald-600 rounded-md hover:bg-emerald-700 disabled:opacity-50"
@@ -119,7 +119,7 @@
                     Մերժել
                   </button>
                 </template>
-                <!-- approved → allow write-off -->
+
                 <template v-else-if="row.status === 'approved'">
                   <button
                       class="px-3 py-1 text-xs font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 disabled:opacity-50"
@@ -174,7 +174,7 @@
               @click="openExpectedArrivals()"
           >
             Տեսնել սպասվող մուտքերը
-            <svg viewBox="0 0 20 20" class="h-4 w-4 text-slate-500" fill="currentColor"><path d="M2 10a1 1 0 011-1h10.586l-3.293-3.293A1 1 0 1111 4.293l5 5a1 1 0 010 1.414l-5 5A1 1 0 0110.293 14.7L13.586 11H3a1 1 0 01-1-1z"/></svg>
+            <svg viewBox="0 0 20 20" class="h-4 w-4 text-slate-500" fill="currentColor"><path d="M2 10a1 1 0 011-1h10.586l-3.293-3.293A1 1 0 1111 4.293լ5 5a1 1 0 010 1.414լ-5 5A1 1 0 0110.293 14.7L13.586 11H3a1 1 0 01-1-1z"/></svg>
           </button>
         </div>
         <div class="border rounded-xl overflow-hidden">
@@ -197,15 +197,10 @@
                 </div>
               </td>
               <td class="px-3 py-2 text-right tabular-nums">{{ fmt(it.qty) }} {{ $t(it.measure ?? 'piece') }}</td>
-<!--              <td class="px-3 py-2 text-center">-->
-<!--                  <span :class="itemStatusPill(it.status)" class="px-2 py-0.5 rounded text-xs">-->
-<!--                    {{ itemStatusLabel(it.status) }}-->
-<!--                  </span>-->
-<!--              </td>-->
+
               <td class="px-3 py-2 align-top">
                 <div v-if="(it.reserves?.length || 0) > 0" class="flex flex-col gap-1">
-                  <div v-for="r in it.reserves" :key="r.id"
-                       class="text-sm px-2 py-1 rounded border border-slate-200 bg-slate-50">
+                  <div v-for="r in it.reserves" :key="r.id" class="text-sm px-2 py-1 rounded border border-slate-200 bg-slate-50">
                     <div class="font-medium">
                       {{ r.cell?.name || 'Չտեղավորվածից' }}
                     </div>
@@ -217,13 +212,15 @@
                 <span v-else class="text-xs text-slate-400">—</span>
               </td>
               <td class="px-3 py-2 text-center">
-                <span class="p-1" :class="statusPillClass(it.status)">
-                  {{ $t(it.status) }}
-                </span>
+                  <span class="p-1" :class="statusPillClass(it.status)">
+                    {{ $t(it.status) }}
+                  </span>
               </td>
               <td class="px-3 py-2 text-center">
-                <!-- Item: approved → allow reject -->
-                <div v-if="(it.status==='approved' || it.status==='pending') && (view.data?.status==='awaiting_warehouse' || view.data?.status==='approved')" class="flex gap-2">
+                <div
+                    v-if="(it.status==='approved' || it.status==='pending') && (view.data?.status==='awaiting_warehouse' || view.data?.status==='approved')"
+                    class="flex gap-2"
+                >
                   <button
                       class="px-2 py-1 text-xs rounded bg-rose-600 text-white hover:bg-rose-700 disabled:opacity-50"
                       :disabled="rejectingItemId===it.id"
@@ -239,7 +236,7 @@
                   >
                     Կառուցել ելքագրումը
                     <svg class="h-4 w-4 text-white" viewBox="0 0 20 20" fill="currentColor">
-                      <path d="M7.05 3.55a1 1 0 0 1 1.4 0l4.5 4.5a1 1 0 0 1 0 1.4l-4.5 4.5a1 1 0 0 1-1.4-1.4L10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
+                      <path d="M7.05 3.55a1 1 0 0 1 1.4 0լ4.5 4.5a1 1 0 0 1 0 1.4լ-4.5 4.5a1 1 0 0 1-1.4-1.4Լ10.79 10 7.05 6.26a1 1 0 0 1 0-1.41z"/>
                     </svg>
                   </button>
                 </div>
@@ -259,6 +256,7 @@
       </div>
     </div>
   </div>
+
   <!-- Cells Modal -->
   <div v-if="cellsModal.open" class="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
@@ -270,17 +268,18 @@
       </div>
 
       <div class="p-5 space-y-4">
-        <!-- վերնամասի ինֆո-չիպեր -->
+        <!-- chips -->
         <div class="flex flex-wrap gap-2">
-    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
-      Պահանջված՝ <b class="ml-1">{{ fmt(cellsModal.item?.qty) }}</b> {{ unitShort(cellsModal.item?.storage_product?.measure) }}
-    </span>
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-slate-100 text-slate-700">
+            Պահանջված՝ <b class="ml-1">{{ fmt(cellsModal.item?.qty) }}</b>
+            {{ unitShort(cellsModal.item?.storage_product?.measure) }}
+          </span>
           <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700">
-      Չտեղավորված առկա՝ <b class="ml-1">{{ fmt(cellsModal.availableNotPlaced) }}</b>
-    </span>
+            Չտեղավորված առկա՝ <b class="ml-1">{{ fmt(cellsModal.availableNotPlaced) }}</b>
+          </span>
         </div>
 
-        <!-- բջիջների աղյուսակ -->
+        <!-- cells table -->
         <div class="border rounded-xl overflow-hidden">
           <table class="min-w-full text-sm">
             <thead class="bg-gray-50">
@@ -311,9 +310,9 @@
           </table>
         </div>
 
-        <!-- ներքևի քանորդներ -->
+        <!-- bottom cards -->
         <div class="grid sm:grid-cols-2 gap-4">
-          <!-- not placed քարտ -->
+          <!-- not placed card -->
           <div class="rounded-xl border border-slate-200 p-3">
             <div class="text-sm font-medium mb-2">Չտեղավորվածից ելքագրման քանակ</div>
 
@@ -322,7 +321,7 @@
                 <input
                     type="number" min="0" step="0.001"
                     class="w-full border border-slate-300 rounded-lg px-3 py-2 text-right
-                 focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
+                         focus:outline-none focus:ring-2 focus:ring-indigo-500/30"
                     v-model.number="cellsModal.allocNotPlaced"
                 />
                 <div class="mt-1 text-xs text-slate-500">
@@ -330,8 +329,6 @@
                   · Առկա՝ <b>{{ cellsModal.availableNotPlaced!=null ? fmt(cellsModal.availableNotPlaced) : '—' }}</b>
                 </div>
 
-                <!-- no hard validation against availableNotPlaced, because BE no longer provides it -->
-                <!-- keep a soft hint only when value is negative -->
                 <p v-if="Number(cellsModal.allocNotPlaced||0) < 0" class="text-xs text-rose-600 mt-1">
                   Չի կարող լինել բացասական։
                 </p>
@@ -339,7 +336,7 @@
             </div>
           </div>
 
-          <!-- ընդհանուր քարտ -->
+          <!-- totals card -->
           <div class="rounded-xl border border-slate-200 p-3">
             <div class="text-sm font-medium mb-2">Ընդհանուր</div>
             <div class="text-sm">
@@ -352,12 +349,13 @@
                 <b class="tabular-nums">{{ fmt(sumTotal) }}</b>
               </div>
               <div class="mt-1 text-xs text-slate-500">Սահման՝ {{ fmt(requiredQty) }}</div>
-              <p v-if="sumTotal !== Number(requiredQty)" class="text-xs text-amber-700 mt-1">
+              <p v-if="!totalsMatch" class="text-xs text-amber-700 mt-1">
                 Պետք է բաշխել ճշգրիտ {{ fmt(requiredQty) }} քանակ (բջիջներ + չտեղավորվող)։
               </p>
             </div>
           </div>
         </div>
+
         <!-- footer buttons -->
         <div class="flex justify-end gap-2 pt-1">
           <button class="px-3 py-2 rounded-xl border hover:bg-gray-50" @click="closeCellsModal">Փակել</button>
@@ -372,18 +370,18 @@
           </button>
         </div>
 
-
-        <!-- վալիդացիոն հուշում -->
-        <p v-if="Number(sumTotal) !== Number(requiredQty)" class="text-sm text-amber-700 mt-2">
+        <!-- validation hints -->
+        <p v-if="!totalsMatch" class="text-sm text-amber-700 mt-2">
           Պետք է բաշխել ճշգրիտ <b>{{ fmt(requiredQty) }}</b> քանակ (բջիջներ + չտեղավորված)։
         </p>
-        <p v-else-if="Number(cellsModal.notPlaced||0) > Number(cellsModal.availableNotPlaced||0)" class="text-sm text-rose-600 mt-2">
+        <p v-else-if="Number(cellsModal.allocNotPlaced||0) > Number(cellsModal.availableNotPlaced||0)" class="text-sm text-rose-600 mt-2">
           «Չտեղավորվածից» ընտրած քանակը չի կարող գերազանցել հասանելիին։
         </p>
         <p v-if="cellsModal.error" class="text-sm text-rose-600">{{ cellsModal.error }}</p>
       </div>
     </div>
   </div>
+
   <!-- Expected Arrivals Modal -->
   <div v-if="expectedModal.open" class="fixed inset-0 z-[55] bg-black/40 flex items-center justify-center p-4">
     <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
@@ -430,6 +428,7 @@
       </div>
     </div>
   </div>
+
   <RejectReasonModal
       :open="reasonModal.open"
       :title="reasonModal.title"
@@ -442,13 +441,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
-import {warehouseDemandApi as demandApi, mainApi, warehouseDemandApi} from '@/api.js'
+import { warehouseDemandApi as demandApi, mainApi, warehouseDemandApi } from '@/api.js'
 import { formatDateTime, fromNow } from '@/utils/dateFormat'
 import RejectReasonModal from '@/components/RejectReasonModal.vue'
+
 const route = useRoute()
 const storageId = computed(() => Number(route.params.id))
 
-// list state
+/* list state */
 const rows = ref<any[]>([])
 const loading = ref(false)
 const submittingId = ref<number|null>(null)
@@ -458,6 +458,8 @@ const endReached = ref(false)
 const search = ref('')
 const status = ref('awaiting_warehouse')
 const storage = ref<any>(null)
+
+/* reject modal (row/item) */
 const reasonModal = ref<{
   open: boolean
   loading: boolean
@@ -471,6 +473,7 @@ const reasonModal = ref<{
   kind: 'row',
   target: null
 })
+
 function openRejectRow(row:any) {
   reasonModal.value = {
     open: true,
@@ -481,9 +484,10 @@ function openRejectRow(row:any) {
   }
 }
 
+const view = ref<{open:boolean, data:any|null, rowRef:any|null}>({ open:false, data:null, rowRef: null })
+const rejectingItemId = ref<number|null>(null)
+
 function openRejectItem(it:any) {
-  const demandId = view.value?.data?.id
-  if (!demandId) return
   reasonModal.value = {
     open: true,
     loading: false,
@@ -492,84 +496,66 @@ function openRejectItem(it:any) {
     target: it
   }
 }
+
 async function confirmReject(reason: string) {
   const modal = reasonModal.value
   const target = modal.target
   if (!target) return
 
   modal.loading = true
-
   try {
     if (modal.kind === 'row') {
-      // disable the original button while we submit
       submittingId.value = target.id
       await demandApi.reject(storageId.value, target.id, { reason })
-      // Option A: refresh list
-      // await reloadFromStart()
-      // Option B: update in place
       target.status = 'rejected'
     } else {
-      // item-level reject
       rejectingItemId.value = target.id
       const demandId = view.value?.data?.id
       await demandApi.rejectItem(storageId.value, demandId, target.id, { reason })
       target.status = 'rejected'
-      // If BE changes the whole demand’s status, you can also sync:
-      // if (view.value.rowRef) view.value.rowRef.status = 'rejected'
     }
-
-    // close modal
     modal.open = false
-  } catch (e:any) {
-    // Optional: surface error (toast/snackbar)
-    // toast.error(e?.response?.data?.message || 'Չհաջողվեց մերժել')
   } finally {
     modal.loading = false
     submittingId.value = null
     rejectingItemId.value = null
   }
 }
+
+/* storage */
 async function loadStorage() {
   storage.value = await mainApi.getStorageById(storageId.value)
 }
-// view modal
-const view = ref<{open:boolean, data:any|null, rowRef:any|null}>({ open:false, data:null, rowRef: null })
-const rejectingItemId = ref<number|null>(null)
 
+/* formatting helpers */
 function fmt(n:any){ return Number(n||0).toLocaleString(undefined,{ maximumFractionDigits:6 }) }
 function unitShort(m:any){
   const k = String(m||'').toLowerCase()
   return ({kg:'կգ', g:'գ', tonn:'տ', t:'տ', l:'լ', ml:'մլ', m3:'մ³', m:'մ', cm:'սմ', mm:'մմ', piece:'հատ', pcs:'հատ'})[k] || ''
 }
-function canAssignCells(parent:any, it:any){
+function canAssignCells(parent:any){
   const parentStatus = String(parent?.status||'').toLowerCase()
-  // թույլ տանք approved/awaiting_warehouse փուլում (կողմիդ կանոններով fine tune)
   return ['approved','awaiting_warehouse'].includes(parentStatus)
 }
 function originName(r:any) {
-  // նախընտրում ենք ստորաբաժանմանը, հետո՝ սկզբնական պահեստին
   if (r?.department?.name) return r.department.name
   if (r?.from_storage?.address) return r.from_storage.address
-  // որոշ API-ներում backend-ը կարող է ուղարկել ինչպես name/address,
-  // այնպես էլ պարզապես { department_name, from_storage_address } դաշտերով.
   if (r?.department_name) return r.department_name
   if (r?.from_storage_address) return r.from_storage_address
   return '—'
 }
+
+/* row actions */
 async function writeOffRow(row:any){
   if (!confirm('Կատարե՞լ դուրսգրում')) return
   submittingId.value = row.id
   try {
-    await demandApi.writeOff(storageId.value, row.id) // 204/200 expected
-    row.status = 'written_off'                        // տեղում թարմացում
-    // կամ `await reloadFromStart()` եթե նախընտրում ես ամբողջ ցանկը թարմացնել
-  } catch (e:any) {
-    // optional: error toast/alert
+    await demandApi.writeOff(storageId.value, row.id)
+    row.status = 'written_off'
   } finally {
     submittingId.value = null
   }
 }
-// labels
 function statusLabel(s:string){
   return ({
     awaiting_warehouse:'Սպասում է պահեստին',
@@ -585,23 +571,18 @@ function statusClass(s:string){
     rejected:'bg-rose-100 text-rose-700'
   } as any)[s] || 'bg-gray-100 text-gray-700'
 }
-
-function itemStatusLabel(s?:string){
-  const v = String(s||'').toLowerCase()
-  if (v==='approved') return 'Հաստատված'
-  if (v==='rejected') return 'Մերժված'
-  if (v==='written_off') return 'Դուրս գրված'
-  return s || '—'
-}
-function itemStatusPill(s?:string){
-  const v = String(s||'').toLowerCase()
-  if (v==='approved') return 'bg-emerald-100 text-emerald-700'
-  if (v==='rejected') return 'bg-rose-100 text-rose-700'
-  if (v==='written_off') return 'bg-indigo-100 text-indigo-700'
-  return 'bg-slate-100 text-slate-700'
+function statusPillClass(s?: string) {
+  const v = String(s || '').toLowerCase()
+  switch (v) {
+    case 'approved': return 'bg-emerald-100 text-emerald-700'
+    case 'rejected': return 'bg-rose-100 text-rose-700'
+    case 'cancelled': return 'bg-rose-100 text-rose-700'
+    case 'written_off': return 'bg-indigo-100 text-indigo-700'
+    default: return 'bg-slate-100 text-slate-700'
+  }
 }
 
-// fetch page
+/* fetch page */
 async function fetchPage(){
   if(loading.value || endReached.value) return
   loading.value = true
@@ -629,7 +610,7 @@ const debouncedReload = (() => {
   return () => { clearTimeout(t); t=setTimeout(reloadFromStart,300) }
 })()
 
-// infinite scroll
+/* infinite scroll */
 const sentinel = ref<HTMLElement|null>(null)
 let io:IntersectionObserver|null = null
 function startIO(){
@@ -642,39 +623,25 @@ function startIO(){
 }
 function stopIO(){ if(io && sentinel.value) io.unobserve(sentinel.value); io=null }
 
-// actions (row)
+/* approve / reject from list */
 async function approveRow(row:any){
   if (!confirm('Հաստատե՞լ պահանջագիրը')) return
   submittingId.value = row.id
   try {
     await demandApi.approve(storageId.value, row.id)
-    row.status = 'approved'                        // տեղում թարմացում
-    // reloadFromStart()
+    row.status = 'approved'
   } catch (e:any) {
     const httpStatus = e?.response?.status
     const errCode    = e?.response?.data?.code ?? e?.code
-    // եթե backend-ը վերադարձնում է 412 (HTTP կամ code),
-    // բացում ենք մոդալը (էլ ոնց որ approve-ից հետո պիտի բացվեր)
     if (httpStatus === 412 || Number(errCode) === 412) {
       await openView(row)
-    } else {
-      // ցանկացած այլ սխալի դեպքում՝ ցանկությանդ համաձայն նուրբ հուշում/alert
-      // alert(e?.response?.data?.message || e.message || 'Չհաջողվեց հաստատել')
     }
   } finally {
     submittingId.value = null
   }
 }
-async function rejectRow(row:any){
-  if(!confirm('Մերժե՞լ պահանջագիրը')) return
-  submittingId.value = row.id
-  try{
-    await demandApi.reject(storageId.value, row.id)
-    reloadFromStart()
-  } finally { submittingId.value = null }
-}
 
-// view modal
+/* view modal */
 async function openView(row:any){
   view.value.open = true
   view.value.rowRef = row
@@ -682,131 +649,81 @@ async function openView(row:any){
 }
 function closeView(){ view.value.open = false; view.value.data = null }
 
-// only items with these statuses
+/* items to show inside view */
 const filteredItems = computed(() => {
-  console.log(view.value.data?.items);
   const items = Array.isArray(view.value.data?.items) ? view.value.data.items : []
   return items.filter((it:any)=> ['pending','approved','rejected','written_off'].includes(String(it.status||'')))
 })
-const busyId = ref<number|null>(null);
-const itemBusyId = ref<number|null>(null);
-function statusPillClass(s?: string) {
-  const v = String(s || '').toLowerCase()
-  switch (v) {
-    case 'approved':
-      return 'bg-emerald-100 text-emerald-700'
-    case 'rejected':
-      return 'bg-rose-100 text-rose-700'
-    case 'cancelled':
-      return 'bg-rose-100 text-rose-700'
-    case 'written_off':
-      return 'bg-indigo-100 text-indigo-700'
-    default: // pending or unknown
-      return 'bg-slate-100 text-slate-700'
-  }
-}
-async function doApprove(row){
-  if(!confirm('Հաստատե՞լ (կկատարվի ռեզերվ)')) return;
-  busyId.value = row.id;
-  try { await api.approve(storageId.value, row.id); row.status='approved'; }
-  finally { busyId.value = null; }
-}
 
-async function doReject(row){
-  if(!confirm('Մերժե՞լ պահանջագիրը')) return;
-  busyId.value = row.id;
-  try { await api.reject(storageId.value, row.id); row.status='rejected'; }
-  finally { busyId.value = null; }
-}
-
-async function doWriteOff(row){
-  if(!confirm('Կատարե՞լ ելքագրում (write-off)')) return;
-  busyId.value = row.id;
-  try { await api.writeOff(storageId.value, row.id); row.status='written_off'; }
-  finally { busyId.value = null; }
-}
-
-async function rejectItem(it:any){
-  if (!confirm('Մերժե՞լ ապրանքը')) return
-  const demandId = view.value?.data?.id
-  if (!demandId) return
-
-  rejectingItemId.value = it.id
-  try {
-    await warehouseDemandApi.rejectItem(storageId.value, demandId, it.id)
-    it.status = 'rejected'
-    // եթե backend-ը նաև փոխի ամբողջ պահանջագրի կարգավիճակը, ցանկության դեպքում սինք արա parent row-ը
-    if (view.value.rowRef) view.value.rowRef.status = 'rejected'
-  } catch (e:any) {
-    // optional: show a toast/message
-    // toast.error(e?.response?.data?.message || 'Չհաջողվեց մերժել')
-  } finally {
-    rejectingItemId.value = null
-  }
-}
-
+/* Cells modal state */
 const cellsModal = ref({
   open:false,
   demand_id: 0,
   item_id: 0,
   item: null as any,
   cells: [] as any[],
-  allocByCell: {} as Record<number, number>, // cell_id -> qty
-  allocNotPlaced: 0,                         // qty for cell_id = null
-  error: ''
+  alloc: {} as Record<number, number>,     // cell_id -> qty (user input)
+  prevNotPlaced: 0 as number,              // previously selected (from API)
+  allocNotPlaced: 0 as number,             // user input for not placed
+  availableNotPlaced: 0 as number,         // available not placed (from API)
+  error: '',
 })
 const savingCells = ref(false)
-const sumAlloc = computed(()=> Object.values(cellsModal.value.alloc).reduce((a,b)=> a + Number(b||0), 0))
-cellsModal.value.prevNotPlaced = cellsModal.value.prevNotPlaced ?? 0
-cellsModal.value.allocNotPlaced = cellsModal.value.allocNotPlaced ?? 0
-// optional: show dash when BE doesn’t provide it
-cellsModal.value.availableNotPlaced = cellsModal.value.availableNotPlaced ?? null
 
-const requiredQty   = computed(() => Number(cellsModal.value.item?.qty || 0))
+/* totals */
 const sumAllocCells = computed(() =>
-    Object.values(cellsModal.value.allocByCell || {}).reduce((a,b)=> a + Number(b||0), 0)
+    Object.values(cellsModal.value.alloc).reduce((a,b)=> a + Number(b||0), 0)
 )
-const sumTotal      = computed(() =>
+const requiredQty = computed(() => Number(cellsModal.value.item?.qty || 0))
+const sumTotal = computed(() =>
     Number(sumAllocCells.value) + Number(cellsModal.value.allocNotPlaced || 0)
 )
-
-const canSave = computed(() => {
-  // ոչ մի թիվ չպետք է լինի բացասական
-  if (Number(cellsModal.value.allocNotPlaced || 0) < 0) return false
-  for (const q of Object.values(cellsModal.value.allocByCell)) {
-    if (Number(q||0) < 0) return false
-  }
-  // ճշգրիտ հավասար
-  return Number(sumTotal.value) === Number(requiredQty.value)
+const totalsMatch = computed(() => {
+  const eps = 1e-9
+  return Math.abs(Number(sumTotal.value) - Number(requiredQty.value)) < eps
 })
+
+/* validation for save button */
+const canSave = computed(() => {
+  // 1) not placed cannot exceed available
+  if (Number(cellsModal.value.allocNotPlaced||0) > Number(cellsModal.value.availableNotPlaced||0)) return false
+  // 2) each cell non-negative
+  for (const qty of Object.values(cellsModal.value.alloc)) {
+    if (Number(qty||0) < 0) return false
+  }
+  // 3) total must equal required
+  return totalsMatch.value
+})
+
+/* open/close & load */
 async function openCellsModal(item:any){
   cellsModal.value.open = true
-  cellsModal.value.item_id  = item.id
+  cellsModal.value.item_id = item.id
   cellsModal.value.demand_id = view.value.data.id
   cellsModal.value.item = item
   cellsModal.value.error = ''
   cellsModal.value.cells = []
-  cellsModal.value.allocByCell = {}
+  cellsModal.value.alloc = {}
   cellsModal.value.allocNotPlaced = 0
+  cellsModal.value.prevNotPlaced = 0
+  cellsModal.value.availableNotPlaced = 0
 
-  const dto = await demandApi.getItemCells(Number(route.params.id), view.value.data.id, item.id)
+  const sid = Number(route.params.id)
+  const dto = await demandApi.getItemCells(sid, view.value.data.id, item.id)
 
-  // բջիջների ցանկը
-  cellsModal.value.cells = dto.cells || []
-
-  // նախապես հատկացվածները
-  for (const a of (dto.allocated || [])) {
-    const qty = Number(a.qty || 0)
-    if (a.cell_id == null) {
-      cellsModal.value.allocNotPlaced = qty
-    } else {
-      cellsModal.value.allocByCell[Number(a.cell_id)] = qty
-    }
+  cellsModal.value.cells = dto?.cells || []
+  for (const a of (dto?.allocated || [])) {
+    cellsModal.value.alloc[a.cell_id] = Number(a.qty || 0)
   }
-}
 
+  // map "not placed" fields
+  cellsModal.value.prevNotPlaced = Number(dto?.not_placed_qty || 0)
+  cellsModal.value.allocNotPlaced = Number(dto?.not_placed_qty || 0)      // prefill with previous selection
+  cellsModal.value.availableNotPlaced = Number(dto?.available_not_placed_qty || 0)
+}
 function closeCellsModal(){ cellsModal.value.open=false }
 
+/* save */
 async function saveCellsAlloc(){
   if (!canSave.value) return
   savingCells.value = true
@@ -821,26 +738,25 @@ async function saveCellsAlloc(){
 
     const allocations: Array<{cell_id: number|null; qty:number; measure:string}> = []
 
-    // բջիջներից
-    for (const [cellIdStr, qtyAny] of Object.entries(cellsModal.value.allocByCell)) {
+    // from cells
+    for (const [cellIdStr, qtyAny] of Object.entries(cellsModal.value.alloc)) {
       const qty = Number(qtyAny || 0)
       const cell_id = Number(cellIdStr)
       if (qty > 0) allocations.push({ cell_id, qty, measure })
     }
 
-    // չտեղավորված
+    // from "not placed"
     const np = Number(cellsModal.value.allocNotPlaced || 0)
     if (np > 0) allocations.push({ cell_id: null, qty: np, measure })
 
-    // ուղարկում
     await demandApi.upsertItemCells(
         Number(route.params.id),
         cellsModal.value.demand_id,
         cellsModal.value.item_id,
-        { allocations } // now each row has { cell_id, qty, measure }
+        { allocations }
     )
 
-    // refresh
+    // refresh the demand view
     const fresh = await demandApi.get(Number(route.params.id), cellsModal.value.demand_id)
     view.value.data = fresh
 
@@ -851,15 +767,13 @@ async function saveCellsAlloc(){
     savingCells.value = false
   }
 }
-// expected arrivals modal state
+
+/* expected arrivals modal */
 const expectedModal = ref<{open:boolean; loading:boolean; rows:any[]; error:string}>({
   open:false, loading:false, rows:[], error:''
 })
-
 function unique<T>(arr:T[]) { return Array.from(new Set(arr)) }
-
 async function openExpectedArrivals(){
-  // հավաքում ենք կոնկրետ այս աղյուսակում ցուցադրվող տողերի product_id-ները
   const ids = unique(
       (filteredItems.value || [])
           .map((it:any) => Number(it?.product?.id ?? it?.product_id ?? 0))
@@ -876,8 +790,6 @@ async function openExpectedArrivals(){
   expectedModal.value.error = ''
 
   try{
-    // ⚠️ ԿԱՐԵՎՈՐ՝ հարմարեցրու քո API անունը.
-    // օրինակ՝ GET/POST storages/:id/demands/expected-arrivals  { product_ids: [...] }
     const dto = await demandApi.getExpectedArrivals(storageId.value, { product_ids: ids })
     expectedModal.value.rows = Array.isArray(dto?.data) ? dto.data : (dto ?? [])
   }catch(e:any){
@@ -887,10 +799,15 @@ async function openExpectedArrivals(){
   }
 }
 function closeExpectedModal(){ expectedModal.value.open=false }
+
+/* lifecycle */
 onMounted(async () => {
   await loadStorage()
   reloadFromStart()
   startIO()
 })
 onBeforeUnmount(stopIO)
+
+/* list approve from modal header button */
+
 </script>

@@ -109,7 +109,7 @@
                       <tr>
                         <th class="px-3 py-2 w-16">#</th>
                         <th class="px-3 py-2">{{ $t('role') || 'Պաշտոն' }}</th>
-                        <th class="px-3 py-2 w-24">{{ $t('plan') || 'Պլան' }}</th>
+                        <th class="px-3 py-2">{{ $t('plan') || 'Պլան' }}</th>
                         <th class="px-3 py-2 w-24">{{ $t('filled') || 'Լցված' }}</th>
                         <th class="px-3 py-2 w-28">{{ $t('needed') || 'Պակասում է' }}</th>
                         <th class="px-3 py-2">{{ $t('vacancy') || 'Թափուր' }}</th>
@@ -136,7 +136,15 @@
                                   </span>
                             </div>
                           </td>
-                          <td class="px-3 py-2">{{ row.position_count ?? '—' }}</td>
+                          <td class="px-3 py-2">
+                            <div class="flex flex-col gap-y-2">
+                              <p>{{ need(row) + row.filled_count }}</p>
+                              <div class="text-gray-500 text-xs" v-if="row.shift">
+                                <p class="">Տվյալ հաստիքը հերթափոխով է</p>
+                                <p>Պետք է լրացնել <span class="text-red-500">{{ row.position_count }} անգամ {{ row.shift_hours + ' X ' + row.shift_periodicity }}</span> պարբերականությամբ հերթափոխը</p>
+                              </div>
+                            </div>
+                          </td>
                           <td class="px-3 py-2">{{ row.filled_count ?? 0 }}</td>
                           <td class="px-3 py-2">
                             <span :class="need(row) > 0 ? 'text-amber-700' : 'text-slate-500'">{{ need(row) }}</span>
@@ -394,7 +402,10 @@ function getRowStages(row) {
 }
 
 function need(row) {
-  const total = Number(row?.position_count ?? 0)
+  let total = Number(row?.position_count ?? 0)
+  if(row.shift) {
+    total += row.shift_periodicity / row.shift_hours
+  }
   const filled = Number(row?.filled_count ?? 0)
   return Math.max(0, total - filled)
 }
